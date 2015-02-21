@@ -1,0 +1,127 @@
+\section{The Ordinary Least-Squares Method}
+
+At this point we already know that the our XY dataset cannot be exactly summarized by a simple linear relation and, therefore, we have to account for the presence of some error. More formally, what are now considering that we can not represent our data by the simple linear equality:
+\begin{equation}
+Y = X w 
+\end{equation}
+but there is one alternative plane defined by $\hat{w}$ that approximately fits the data if we to account for some errors (or residuals):
+\begin{equation}
+Y = X \hat{w} + \epsilon
+\end{equation}
+With $\epsilon$ being the vector of errors:
+\begin{equation}
+\epsilon = Y - X \hat{w}
+\end{equation}
+or, more explicitly:
+\begin{equation}
+\epsilon 
+=
+\begin{bmatrix}
+\epsilon_1 \\
+\epsilon_2 \\
+... \\
+\epsilon_n
+\end{bmatrix}
+=
+\begin{bmatrix}
+y_1 - x_1\hat{w} \\
+y_2 - x_2\hat{w} \\
+... \\
+y_n - x_n\hat{w} \\
+\end{bmatrix}
+=
+\begin{bmatrix}
+y_1 - \hat{y}_1 \\
+y_2 - \hat{y}_2 \\
+... \\
+y_n - \hat{y}_n \\
+\end{bmatrix}
+\end{equation}
+
+Our question now becomes: what is the ``best" plane for fitting the data. As we saw in the previous chapter, there are multiple ways of quantifying ``good" and ``bad", depending on the Loss Function we use. We also mentioned that the choice of a specific Loss Function would have impact on the characteristics of the plane we obtain, as well on the strategies we have availalbe for computing the solution. In this Chapter we are going to explore what happens when we commit to a specific Loss Function: the Quadratic Loss. This is the core of the \emph{Ordinary Least-Squares Method}.
+
+\subsection{Miniminzing the Quadratic Loss}
+Given an the error:
+\begin{equation}
+\epsilon = Y - X \hat{w} = Y - \hat{Y}
+\end{equation}
+The Quadratic Loss is defined as:
+\begin{equation}
+\epsilon^T \epsilon = (Y - X \hat{w})^{T}(Y - X \hat{w})
+\end{equation}
+\begin{equation}
+\epsilon^T \epsilon = (Y - \hat{Y})^{T}(Y - \hat{Y})
+\end{equation}
+
+We can expand the previous equation in the following way:
+\begin{equation}
+\epsilon^T \epsilon = (Y - X \hat{w})^{T}(Y - X \hat{w}) = Y^{T}Y -  (X \hat{w})^{T} Y - Y^{T} X\hat{w} + (X\hat{w})^T X \hat{w}
+\end{equation}
+\begin{equation}
+\epsilon^T \epsilon = (Y - \hat{Y})^{T}(Y - \hat{Y}) = Y^{T}Y - Y^{T}\hat{Y} - \hat{Y}^T Y + \hat{Y}^T \hat{Y}
+\end{equation}
+We should note that 
+\begin{equation}
+Y^{T}\hat{Y} = \hat{Y}^T Y 
+\end{equation}
+which is a scalar (it's the inner product of two row vectors) and so we can actually rewrite the previous equation as:
+\begin{equation}
+\epsilon^T \epsilon = Y^{T}Y - 2 \hat{Y}^T Y + \hat{Y}^T \hat{Y}
+\end{equation}
+Let us now substitute $\hat{Y}$ by $X \hat{w}$ to get:
+\begin{equation}
+\epsilon^T \epsilon = Y^{T}Y -  2 (X \hat{w})^{T} Y + (X\hat{w})^T X \hat{w}
+\end{equation}
+Since the rules of matrix transposition tell us that:
+\begin{equation}
+(AB)^T = B^TA^T
+\end{equation}
+we can rewrite the previous equation by making:
+\begin{equation}
+\epsilon^T \epsilon = Y^{T}Y - 2 \hat{w}^TX^TY + \hat{w}^TX^T X \hat{w}
+\label{eq.squared_loss_ols_explicit}
+\end{equation}
+
+We now want now to find the $\hat{w}$ that minimizes the value of the quadratic loss, $\epsilon^T \epsilon$. In other words, we wish to find $\hat{w}$ such that:
+\begin{equation}
+\frac{\partial \epsilon^T \epsilon}{\partial \hat{w}} = 0
+\end{equation}
+But before we try to actually perform the derivation of $ \epsilon^T \epsilon$, we should revise some important rules of matrix derivation. First of all:
+\begin{equation}
+\frac{\partial X^T\beta}{\partial \beta} = X
+\end{equation}
+\begin{equation}
+\frac{\partial \beta^T X}{\partial \beta} = X
+\end{equation}
+Also, if S is a symmetric matrix then:
+\begin{equation}
+\frac{\partial \beta^T S \beta}{\partial \beta} = 2S\beta = 2\beta^TS
+\end{equation}
+We have already seen that $X^T X$ is a k x k symmetric matrix, with k being equal to the number of dimension of the X data plus 1 (for the intercept). So, hoing back to equation \ref{eq.squared_loss_ols_explicit} and taking account the previous rules:
+\begin{equation}
+\frac{\partial \epsilon^T \epsilon}{\partial \hat{w}} = 
+\frac{\partial Y^{T}Y}{\partial \hat{w}} - 2
+\frac{\partial \hat{w}^TX^TY}{\partial \hat{w}} +
+\frac{\partial \hat{w}^TX^T X \hat{w}}{\partial \hat{w}}
+\end{equation}
+Which gets us to
+\begin{equation}
+\frac{\partial \epsilon^T \epsilon}{\partial \hat{w}} = -2 X^T Y + 2 X^T X \hat{w}
+\label{eq.first_derivative_square_loss}
+\end{equation}
+Solving now for finding the zero and solving for $\hat{w}$:
+\begin{align*} 
+-2 X^T Y + 2 X^T X \hat{w} &= 0 \Leftrightarrow \\
+X^T X \hat{w} &= X^T Y \Leftrightarrow \\
+\hat{w} &= (X^T X)^{-1} X^T Y
+\end{align*}
+To make sure that this is really a minimum, lets just check if the second derivative of the square loss is positive, at this point. So, we are going to take the first derivative - Equation \label{eq.first_derivative_square_loss} - and derive it again:
+\begin{equation}
+\frac{\partial^2 \epsilon^T \epsilon}{\partial \hat{w}^2} = 2 X^T X
+\end{equation}
+Now $X^T X$ is a positive definite matrix (X is full rank), which basically means that the second derivative is positive, and hence we do have a minimum. So, this is the $\hat{w}$ solution we are looking for.
+\\
+
+Here is one very interesting thing. If we go back to equation \ref{eq.weight_equation_rectangular_x_matrix} which was used compute $\hat{w}$ when we were assuming that all points in the dataset would in fact be  in one plane, what do you see?
+
+

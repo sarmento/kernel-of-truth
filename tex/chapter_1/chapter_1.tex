@@ -1,0 +1,616 @@
+\section{The Very Basics}
+This section is intended to help you revise same fundamental algebra concepts and make you confortable with the notation conventions we will use. 
+
+
+\subsection{$\mathcal{Y}$ as an explicit linear function of $\mathcal{X}$: the 1-D case}
+
+Let's start with a very simple scenario. We are given a table with the values of one event of interest - $\mathcal{Y}$ - as a function of another variable we can observe, $\mathcal{X}$. 
+
+\begin{align}
+\begin{tabular}{c|c}
+$\mathcal{Y}$ & $\mathcal{X}$ \\
+\hline
+$y_1$ & $x_{11}$\\
+$y_2$ & $x_{21}$\\
+\end{tabular}
+\label{table_1d_abstract}
+\end{align}
+
+Here we are assuming the $\mathcal{X}$ observations are made over a single attribute, $x_{i1}$. We are using the double subscript notation to make more explicit the fact that we are looking at the first attribute - and so far the only one - of the $\mathcal{X}$ variables. This will allow us to more easily generalize many of the equations to those cases where the $\mathcal{X}$ variables have multiple attributes.\\
+
+Suppose that given the two data points in Table \ref{table_1d_abstract} we are asked to ``predict" the value of another yet unknown $\mathcal{Y}$, $y_u$, for which we have access to the value of the attribute $x_{u1}$. Let us also assume that $\mathcal{Y}$ is a linear function of $\mathcal{X}$. Figure \ref{fig.simple_line} illustrates this relation. Without loss of generality we opted for placing $x_{u1}$ in between $x_{11}$ and $x_{21}$.\\
+
+\begin {figure}[H]
+\begin{center}
+  \input{chapter_1/line_example}
+\end{center}
+\caption{Plotting the points from Table \ref{table_1d_abstract}}
+\label{fig.simple_line}
+\end {figure}
+
+By looking at Figure \ref{fig.simple_line}, we see we can express $y_u$ as:
+
+\begin{equation}
+y_u = y_0 + x_{u1} \cdot \tan\alpha_1
+\label{eq.simple_linear}
+\end{equation}
+but we need the values of both $y_0$ and $\tan\alpha$. The value of $\tan\alpha$ is actually quite easy to compute and is given by:
+\begin{equation}
+\tan\alpha_1 = \frac{y_2 - y_1}{x_{21} - x_{11}}
+\label{eq.simple_tangent}
+\end{equation}
+The value of $y_0$ can now be computed by making $x = 0$, and solving equation \ref{eq.simple_linear} for $y_0$ for any of the known (x,y) values. For example, solving for $y_u = y_1$ we get:
+\begin{equation}
+y_0 = y_1 - x_{11} * \tan\alpha_1
+\end{equation}
+The $y_0$ value is often called \emph{the intersect}, and will appear in many of the equations that follow.
+
+\subsubsection{Expressing it in the matrix notation}
+An alternative to maintaining one separate equation for the tangent and another for the intercept consists in observing that Equation \ref{eq.simple_linear} can be compatctly rewritten using a vector notation. Let's start by observing that:
+\begin{equation}
+y_u =  
+1 \cdot y_0 + x_u \cdot \tan\alpha_1
+=
+\begin{bmatrix}
+1 &
+x_{u1}
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+y_0 \\ 
+\tan\alpha_1
+\end{bmatrix} 
+\end{equation}
+So, if we make 
+\begin{equation}
+X = 
+\begin{bmatrix}
+1 & x_{u1}
+\end{bmatrix}
+\end{equation}
+and
+\begin{equation}
+\begin{bmatrix}
+y_0 \\
+\tan\alpha_1
+\end{bmatrix}
+=
+\begin{bmatrix}
+w_0 \\
+w_1
+\end{bmatrix}
+= w
+\end{equation}
+we get this very compact representation:
+\begin{equation}
+Y = X w
+\end{equation}
+
+Let us then represent the points we were given in Table \ref{table_1d_abstract}  - $y_1$ and $y_2$ - using this vector notation. Since
+\begin{equation}
+y_1 =
+1 \cdot y_0 + x_{11} \cdot \tan\alpha_1
+\end{equation}
+and
+\begin{equation}
+y_2 =
+1 \cdot y_0 + x_{21} \cdot \tan\alpha_1
+\end{equation}
+we can represent each $y_i$ as an entry in a vertical vector Y, which allow us to write both equation as:
+\begin{equation}
+Y = \begin{bmatrix}
+y_1 \\
+y_2
+\end{bmatrix}
+=
+\begin{bmatrix}
+1 \\
+1
+\end{bmatrix}
+\cdot y_0
++
+\begin{bmatrix}
+x_{11} \\
+x_{21}
+\end{bmatrix}
+\cdot 
+\tan\alpha_1
+\label{equation_comb_of_dimension_vectors}
+\end{equation}
+This leads to this very compact representation of our initial data set:
+\begin{equation}
+\begin{bmatrix}
+y_1 \\
+y_2
+\end{bmatrix}
+=
+\begin{bmatrix}
+1 & x_{11} \\
+1 & x_{21}
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+y_0 \\ 
+\tan\alpha_1
+\end{bmatrix} = X \cdot w
+\end{equation}
+
+It is now clear that if we have two data points (our ''training points"), we can compute the $w$ vector very simply by solving the linear system:
+\begin{equation}
+Y = X \cdot w
+\end{equation}
+
+and ''learn" the weight vector w that would allow us to make ""predictions" about other x points. The solution can be obtained by inversion of the X matrix.  Multiplying both sides of the equation by $X^{-1}$
+
+\begin{equation}
+X^{-1} Y = X^{-1}X \cdot w
+\end{equation}
+we get
+\begin{equation}
+w = X^{-1} Y
+\label{slope_equation}
+\end{equation}
+
+\subsubsection{Show me the numbers!}
+Let us now exemplify what we have seen so far. Assume then that we instantiate the X Y values presented in Table \ref{table_1d_abstract} to obtain the following table:
+
+\begin{align}
+\begin{tabular}{c|c}
+$\mathcal{Y}$ & $\mathcal{X}$ \\
+\hline
+5 & 2\\
+13 & 6\\
+\end{tabular}
+\label{table_1d_example}
+\end{align}
+\begin {figure}[H]
+\begin{center}
+  \input{chapter_1/line_example_with_values}
+\end{center}
+\caption{Plotting the points from Table \ref{table_1d_example}}
+\label{fig.simple_line_with_values}
+\end {figure}
+
+Let's stary by trying to explicitly compute the elements of the w vector i.e. $y_0$ and $\tan \alpha_1$. First we need to compute the tangent:
+
+\begin{equation}
+\tan\alpha = \frac{y_2 - y_1}{x_{21} - x_{11}} = \frac{13 - 5}{6 - 2} = 2
+\end{equation}
+And now, solving, equation \ref{eq.simple_linear} for $y_u = 5$, we get:
+\begin{equation}
+y_0 = y_1 - x_{11} * \tan\alpha_1 = 5 - 2 * 2 = 1
+\end{equation}
+Alternatively, the \emph{entire} data set can be described using the matrix notation using a single equation:
+\begin{equation}
+Y = X \cdot w
+\end{equation}
+
+This allows us to compute the value of vector w using the basic matrix calculus:
+\begin{equation}
+w = X^{-1} Y = \begin{bmatrix}
+1 & 2 \\
+1 & 6
+\end{bmatrix}^{-1}
+\cdot
+\begin{bmatrix}
+5 \\ 
+13
+\end{bmatrix}
+= 
+\begin{bmatrix}
+1.5 & -0.5\\
+-0.25 & 0.25\\
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+5 \\ 
+13
+\end{bmatrix}
+= 
+\begin{bmatrix}
+1.5 \cdot 5 + -0.5 \cdot 13\\
+-0.25 \cdot 5 + 0.25 \cdot 13\\
+\end{bmatrix}
+\label{slope_equation}
+= 
+\begin{bmatrix}
+1\\
+2\\
+\end{bmatrix}
+\end{equation}
+We obviously get the same values for the vector w but we did not have to explictily deal with the equations related with the intercept and with the tangent. Overall, matrix algebra allow a much more compact representation.The usefulness of the matrix approach will become even more obvious when we move to a scenario with 3 or more dimension, where computing the components of the w vector explictly becomes very tedious.
+
+\subsubsection{Solving $Y = Xw$ symbolically for 2 points, in the 1-D case}
+Let us try to symbolically solve $Y = Xw$ for the 1-D case with two data points, so that we can obtain the $w$ vector. It is clear that vector w is given by:
+Since:
+\begin{equation}
+X =
+\begin{bmatrix}
+1 & x_{11}\\
+1 & x_{21}\\
+\end{bmatrix}
+\end{equation}
+we have:
+\begin{equation}
+X^{-1} = \frac{1}{x_{21}-x_{11}}
+\begin{bmatrix}
+x_{21} & -x_{11}\\
+-1 & 1\\
+\end{bmatrix}
+\end{equation}
+Therefore:
+\begin{equation}
+w = X^{-1} Y = \frac{1}{x_{21}-x_{11}}
+\begin{bmatrix}
+x_{21} & -x_{11}\\
+-1 & 1
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+y_1 \\
+y_2
+\end{bmatrix}
+=
+\begin{bmatrix}
+\frac{x_{21} \cdot y_1 - x_{11} \cdot y_2}{x_{21} - x_{11}}  \\
+\frac{y_2 - y_1}{x_2 - x_1}
+\end{bmatrix}
+\end{equation}
+According to previous derivations, we know that:
+\begin{equation}
+\begin{bmatrix}
+\frac{x_{21} \cdot y_1 - x_{11} \cdot y_2}{x_{21} - x_{11}}  \\
+\frac{y_2 - y_1}{x_2 - x_1}
+\end{bmatrix}
+=
+\begin{bmatrix}
+y_{00}\\
+\tan \alpha
+\end{bmatrix}
+\end{equation}
+that is, the w store the \emph{intercept} ($y_{00}$) and the tangent on dimension 1. While it is quite clear that:
+\begin{equation}
+\tan \alpha = \frac{y_2 - y_1}{x_2 - x_1} 
+\end{equation}
+it is not so obvious that the intercept is in fact given by
+\begin{equation}
+y_{00} = \frac{x_{21} \cdot y_1 - x_{11} \cdot y_2}{x_{21} - x_{11}}
+\label{intercept_equation_symbolic_2d_derivation}
+\end{equation}
+The demonstration is left as Exercise 1.1.
+
+\subsection{Going Wild! Adding one extra dimension to the $\mathcal{X}$ observations}
+
+Let's now assume that the value of Y is a function of not just one attribute of X, but of two attributes. Our obervations may now be described by a table such as:
+\begin{align}
+\begin{tabular}{c|cc}
+$\mathcal{Y}$ & \multicolumn{2}{c}{$\mathcal{X}$} \\
+\hline
+$y_1$ & $x_{11}$ & $x_{12}$\\
+$y_2$ & $x_{21}$ & $x_{22}$\\
+$y_3$ & $x_{31}$ & $x_{32}$\\
+\end{tabular}
+\label{table_2d_abstract}
+\end{align}
+Instead of having a line that passes through the XY points, we now have a plane. We will need at least 2+1 points to define the plane. Figure \ref{fig.simple_plane} illustrates one of these situations when we have the following 3 data points:
+\begin{align}
+\begin{tabular}{c|cc}
+$\mathcal{Y}$ & \multicolumn{2}{c}{$\mathcal{X}$} \\
+\hline
+1 & 1 & 4\\
+6 & 2 &-2\\
+12&6 & 2\\
+\end{tabular}
+\label{table_2d_numbers}
+\end{align}
+\begin {figure}[H]
+\begin{center}
+  \input{chapter_1/plane_example}
+\end{center}
+\caption{Plotting the points from Table \ref{table_2d_numbers}}
+\label{fig.simple_plane}
+\end {figure}
+
+Let us then try to predict the value of $y_n$ given the pair of attributes ($x_{u1}$, $x_{u2}$). We will follow a similar procedure to the one we followed for the 1-dimension case, but now we have two attributes to consider. From Figure \ref{fig.simple_plane} it is easy to see that you can obtain the value of $y_u$ by walking first in the $x_{*1}$  direction and then on the $x_{*2}$:
+
+\begin{equation}
+y_u= y_{00} +  x_{u1} \tan\alpha_1 + x_{u2} \tan\alpha_2
+\label{eq.linear_combinations_of_inputs_vectors_2}
+\end{equation}
+
+Each of the dimension in which $\mathcal{X}$ spans is being treated independently: for computing the value of $y_u$ we simply ``add" the effect that each feature over value intersect value $y_{00}$. 
+
+However, there is one little detail that we still have not addressed: how do we compute the tangents $\tan\alpha_1$ and $\tan\alpha_2$? As is is possible to see, in general the X points that we have access will have coordinate differences in all axis, so it is not straighforward to compute the tangents based only on values of the corresponding axis. In other words, $\tan\alpha_1$ and $\tan\alpha_2$ can \emph{not} be computed just by doing:
+\begin{equation}
+\tan\alpha_1 = \frac{y_2 - y_1}{x_{21} - x_{11}}
+\label{eq.simple_tangent_2d_1}
+\end{equation}
+\begin{equation}
+\tan\alpha_2 = \frac{y_2 - y_1}{x_{22} - x_{12}}
+\label{eq.simple_tangent_2d_2t}
+\end{equation}
+since the change in the Y value (the numerator of both fraction) depends simultaneously on the difference over all dimensions of the X axis (in this case just two).
+
+This is were the matrix notation is really poweful. Similarly to the 1-D case, we can easily transform these equation to the vector / matrix notation by making:
+\begin{equation}
+y_u =  
+\begin{bmatrix}
+1 &
+x_{u1} &
+x_{u2} &
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+y_{00} \\ 
+\tan\alpha_1 \\
+\tan\alpha_2
+\end{bmatrix} 
+=
+1 \cdot y_{00} + x_{u1} \cdot \tan\alpha_1 + x_{u2} \cdot \tan\alpha_2
+\end{equation}
+
+If we then represent our dataset seen in Table \ref{table_2d_abstract} in such matrix notation, we obtain:
+\begin{equation}
+y_1 = 1 \cdot y_{00} + x_{11} \cdot \tan\alpha_1 + x_{12} \cdot \tan\alpha_2
+\end{equation}
+\begin{equation}
+y_2 = 1 \cdot y_{00} + x_{21} \cdot \tan\alpha_1 + x_{22} \cdot \tan\alpha_2
+\end{equation}
+\begin{equation}
+y_3 = 1 \cdot y_{00} + x_{31} \cdot \tan\alpha_1 + x_{32} \cdot \tan\alpha_2
+\end{equation}
+
+Packing $y_1$, $y_2$ and $y_3$ in a vertical Y vector, we can write:
+
+\begin{equation}
+Y = \begin{bmatrix}
+y_1 \\
+y_2
+y_3
+\end{bmatrix}
+=
+\begin{bmatrix}
+1 \\
+1 \\
+1
+\end{bmatrix}
+\cdot y_{00}
++
+\begin{bmatrix}
+x_{11} \\
+x_{21} \\
+x_{31}
+\end{bmatrix}
+\cdot 
+\tan\alpha_1
++
+\begin{bmatrix}
+x_{12} \\
+x_{22} \\
+x_{32}
+\end{bmatrix}
+\cdot 
+\tan\alpha_2
+\label{equation_comb_of_dimension_vectors_2_dim}
+\end{equation}
+which in a more compact way can be represented as:
+\begin{equation}
+\begin{bmatrix}
+y_1 \\
+y_2
+\end{bmatrix}
+=
+\begin{bmatrix}
+1 & x_{11} & x_{12}\\
+1 & x_{21} & x_{22}\\
+1 & x_{31} & x_{32}
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+y_{00} \\ 
+\tan\alpha_1 \\
+\tan\alpha_2 \\
+\end{bmatrix} = X \cdot w
+\end{equation}
+Which can be solved by making:
+\begin{equation}
+w = X^{-1} Y
+\end{equation}
+or, more generically, by making:
+\begin{equation}
+w = (X^T X)^{-1} X^T Y 
+\end{equation}
+One interesting point of the matrix formulation is that it makes is very clear that, besides storing the intercept, the w vector is basically a vector containing the ''slopes" in each of the dimensions. Very informally, the w vector that contains information about how much Y changes per change in each of the dimensions of X and that becomes very obvious by looking at Equation \ref{slope_equation}: Y is being "divided" by X, i.e we have a Y per X ratio. This observation allows us to work n-dimensions while keeping some of the intuitions of the simple 1-d case.
+
+\subsubsection{Show me the numbers}
+\label{section_example_plane}
+Let's go back to Figure \ref{fig.simple_plane} and to Table \ref{table_2d_numbers}. Using matrix notation, our X and Y are given by:
+
+\begin{equation}
+X =
+\begin{bmatrix}
+1 & 1 & 4\\
+1 & 2 &-2\\
+1 &6 & 2\\
+\end{bmatrix}
+\label{x_matrix_2d}
+\end{equation}
+and
+\begin{equation}
+Y = \begin{bmatrix}
+1\\
+6\\
+12
+\end{bmatrix}
+\label{y_matrix_2d}
+\end{equation}
+To compute w we will use Equation XX:
+\begin{equation}
+w = X^{-1} Y =
+\begin{bmatrix}
+4/7 & 11/14 & -5/14\\
+-1/7 & -1/14 &  3/14\\
+1/7 & -5/28 &  1/28
+\end{bmatrix}
+\begin{bmatrix}
+1\\
+6\\
+12
+\end{bmatrix}
+=
+\begin{bmatrix}
+1\\
+2\\
+-1/2
+\end{bmatrix}
+\label{equation_for_w_2d_example}
+\end{equation}
+These leads to the values of the tangents being $\tan\alpha_1 = 2$ and $\tan\alpha_2 = -1/2$, with the intersect being given by $y_{00}=1$.
+
+\subsection{Adding one extra observation pair - $(y_3, x_{31})$}
+As we have seen in the previous sections, we can define a 1-d plane using two data points, and in the 2-d case we can define the plane using just three points. In general, we need d+1 points to be able to find the d-dimension plane. So, what happens now if we add ``redundant" points in our dataset, that is, points that also lie in the plane defined by the d+1 previously given points  
+
+Let us focus on the 1-d case, since we already saw that by using matrix notation we can think in 1-d and then easily generalize to more dimension. For example, lets assume that we add the point $(y_3, x_3)=(7,3)$ to table \ref{table_1d_example}. By looking at Figure \ref{fig.simple_line_with_values} it is possible to confirm that this point does in fact lie on the line already defined by the previous points. If we add this extra point, the X and Y matrixes become: 
+
+\begin{equation}
+Y =
+\begin{bmatrix}
+5\\
+7\\
+13
+\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+X = 
+\begin{bmatrix}
+1&2\\
+1&3\\
+1&6\\
+\end{bmatrix}
+\end{equation}
+The problem here is that is we want to compute w by doing
+\begin{equation}
+w = X^{-1} Y = 
+\end{equation}
+we will not be able to invert X since it X is not a square matrix. Clearly, X has enough information to allow us to compute the intercept and the tangent values that constitute the w vector since it stores 3 colinear points and we only need 2 points. It seems that we got stuck.
+
+The way forward comes from a very simple observation. Only need to ''invert" X for the sake of computing w. We don't actually need to know $X^{-1}$, which can be seen as an intermediate result to get to our end (computing w!). So, let's get back to the Equation \ref{slope_equation}:
+\begin{equation}
+w = X^{-1} Y
+\end{equation}
+and see what we can do. So, let us assume that there is a matrix G which is non-singular (i.e. can be inverted). So, without changing this equility we can add the factors $G^{-1} G$ such that:
+\begin{equation}
+w = X^{-1} G^{-1} G Y
+\end{equation}
+By the rules of matrix inversion (see Section \ref{appendix_matrix_inversion}) we can transform this equation in:
+\begin{equation}
+w = (G X)^{-1} G Y 
+\end{equation}
+This suggest that if we find a matrix G that multiplied by X generates an invertible matrix, then we can compute we are back on track to computing w by using matrix calculus. So, what could that matrix G be?
+
+It turns out that there is one very simple solution: $G = X^T$. If we make $G = X^T$, then we have:
+\begin{equation}
+w = (X^T X)^{-1} X^T Y 
+\end{equation}
+so we need to invert $X^T X$ which is now a (d+1) x (d+1) square matrix,(i.e. the number of dimensions d plus one extra ''dimension" for the intercept). This $X^T X$ matrix as a number of important properties (e.g. symmetric, positive-semidefinite) which we will detail in the next chapter but for now it suffices to say that  this matrix is non-singular, i.e. we can invert it. Thus, we elegantly solved our algebraic problem, and we can now compute w even if X has extra redundant points.
+
+\subsection{Let's see the numbers!}
+So our X matrix is now:
+\begin{equation}
+X = 
+\begin{bmatrix}
+1&2\\
+1&3\\
+1&6\\
+\end{bmatrix}
+\end{equation}
+We can easily obtain $X^T$:
+\begin{equation}
+X^T=
+\begin{bmatrix}
+1& 1 &1\\
+2& 3 &6\\
+\end{bmatrix}
+\end{equation}
+so that the product $X^T X$ is:
+\begin{equation}
+X^T X=
+\begin{bmatrix}
+1& 1 &1\\
+2& 3 &6\\
+\end{bmatrix}
+\begin{bmatrix}
+1&2\\
+1&3\\
+1&6\\
+\end{bmatrix}
+= 
+\begin{bmatrix}
+3&11\\
+11&49\\
+\end{bmatrix}
+\end{equation}
+which is a 2 x 2 symmetric matrix (for dimension 1 and for the intercept). Now $X^T X$ is clearly invertible:
+\begin{equation}
+(X^T X)^{-1}=
+\begin{bmatrix}
+1.88461538 & -0.42307692\\
+-0.42307692 &  0.11538462
+\end{bmatrix}
+\end{equation}
+and is obviously a symmetric matrix too. The next step is to compute $(X^T X)^{-1} X^T$:
+\begin{equation}
+(X^T X)^{-1} X^T=
+\begin{bmatrix}
+1.88461538 & -0.42307692\\
+-0.42307692 &  0.11538462
+\end{bmatrix}
+\begin{bmatrix}
+1& 1 &1\\
+2& 3 &6\\
+\end{bmatrix}=
+\begin{bmatrix}
+1.03846154 &  0.61538462 & -0.65384615\\
+-0.19230769 & -0.07692308 &  0.26923077
+\end{bmatrix}
+\end{equation}
+At this point, we solved the core of our problem which was to compute the ''inverse" of X. We now have a 2 x 3 matrix which will allow us to compute the values of intercept and tangent by multiplying it with a 3 x 1 Y vector:
+\begin{equation}
+w = (X^T X)^{-1} X^T Y=
+\begin{bmatrix}
+1.03846154 &  0.61538462 & -0.65384615\\
+-0.19230769 & -0.07692308 &  0.26923077
+\end{bmatrix}
+\begin{bmatrix}
+5\\
+7\\
+13
+\end{bmatrix}
+= 
+\begin{bmatrix}
+1.\\ 
+2.
+\end{bmatrix}
+\end{equation}
+These values match exactly what we had obtained before. This makes sense: adding redundant information should not change the solution. But the key lesson is that matrix algebra provides us with a principled solution to processing ``redundant" datapoints by allowing us to invert a certain type of rectangular matrixes (more on this later).
+
+\subsection{Conclusion}
+In this chapter we introduced the matrix notation, and demonstrated the usefulness of using such notation in expressing relations that involve multi-dimensional data. The matrix notation allows us to express relations independently of the number of dimensions involved. In that way, it helps us apply the intuitions that we can more easily develop for the low dimension cases, which are usually easier to visualize or imagine, to cases where we are dealing with a very high number of dimension and where visualization (and intuition) becomes much harder.
+
+The main matrix operation involved in our formulation has been inversion of matrix X where we store our observable features. Matrix inversion usually requires the matrix to invert to be square (and non-singular). We showed that adding ``redundant" points to our dataset and thus making the X matrix a tall rectangular matrix does not represent a problem in terms of matrix inversion since we can obtain the same effect of inverting, i.e. $X^{-1}$ by using $(X^T X)^{-1} X^T$, which only involves inverting a square matrix (we will have more on this later). 
+
+As we have seen, the X matrix, which holds the information about the features of the objects we are observing, plays a center role in all the modeling we have been doing. Therefore, in the next chapter we will focus on deepening our intuition about the X matrix, and about several other related matrixes that are function of the X matrix.
+
+\subsection{Exercises}
+
+\textbf{Exercise 1.1:} Show that Equation \ref{intercept_equation_symbolic_2d_derivation} presented in Section does in fact correspond to intercept of the plane in the 2D case.
+\\
+\\
+\textbf{Exercise 1.2:} Implement the example given in Section \ref{section_example_plane} using Python and the sympy package.
+
+
+
+
+\pagebreak
+

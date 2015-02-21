@@ -1,0 +1,45 @@
+\section{Solutions to Exercises}
+
+\subsection{Chapter 1}
+\textbf{Exercise 1:} We wish to prove that the intercept $y_{00}$ is given by equation: 
+\begin{equation}
+y_{00} = \frac{x_{21} \cdot y_1 - x_{11} \cdot y_2}{x_{21} - x_{11}}
+\end{equation}
+We will start by adding and removing the term $x_{11} \cdot y_1$:
+\begin{equation}
+\frac{x_{21} \cdot y_1 - x_{11} \cdot y_2 } {x_{21} - x_{11}}  = 
+\frac{x_{21} \cdot y_1 - x_{11} \cdot y_2 + x_{11} \cdot y_1 - x_{11} \cdot y_1} {x_{21} - x_{11}} 
+\end{equation}
+By reorganizing the terms we get:
+\begin{equation}
+\frac{x_{21} \cdot y_1 - x_{11} \cdot y_1 - x_{11} \cdot y_2 + x_{11} \cdot y_1} {x_{21} - x_{11}} 
+\end{equation}
+By factorizing the re-ordered terms we obtain:
+\begin{equation}
+\frac{y_1 \cdot (x_{21} - x_{11}) - x_{11} \cdot (y_2 + y_1)} {x_{21} - x_{11}} 
+\end{equation}
+which leads to:
+\begin{equation}
+y_1 - x_{11} \cdot \frac{y_2 + y_1} {x_{21} - x_{11}} = y_1 - x_{11} \cdot \tan \alpha
+\end{equation}
+which is the value of the intercept, as it can be seen from Figure \ref{fig.simple_line}.
+\\
+\\
+
+\textbf{Exercise 2:} 
+Let us start by importing the Matrix class from sympy and then creating 2 matrix objects, one for storing the X matrix (Equation \ref{x_matrix_2d}) and the other for storing the Y vector (Equation \ref{y_matrix_2d}). Computing w is obtaind by applying Equation \ref{equation_for_w_2d_example}
+. 
+\begin{lstlisting}
+from sympy import Matrix
+X = Matrix([[1, 1, 4], [1, 2, -2], [1, 6, 2]])
+Y = Matrix([[1],[6],[12]])
+w = X.inv() * Y
+\end{lstlisting}
+We can now inspect the w vector:
+\begin{lstlisting}
+>>> w
+Matrix([
+[   1],
+[   2],
+[-1/2]])
+\end{lstlisting}

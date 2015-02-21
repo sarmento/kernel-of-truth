@@ -1,0 +1,170 @@
+\section{A not so perfect world}
+The formulations we made in the Chapter 1, as well as the corresponding examples given, assumed that all the n points in our XY datasets lied on the same line (for the 1-d case), plane (for the 2-d case), or more generically, hyperplane. That is, if Y is a vector containing the values $y_i$ (from 1 to n), and X is a matrix that contains the corresponding observation vectors $x_i$  over a set of d attributes, we could express Y (i.e. \emph{all} observations) by the linear combination:
+\begin{equation}
+Y = X w 
+\end{equation}
+with w being a vector composed by what we called the intercept and by the values of the slopes $\tan \alpha_i$, for all the d dimensions of X observations (we are assuming that the number of XY points in our data, n, is equal or larger than d+1). Plus, w could be \emph{uniquely} computed by making:
+\begin{equation}
+w = (X^T X)^{-1} X^T Y
+\label{eq.weight_equation_rectangular_x_matrix}
+\end{equation}
+and we could then use the value of w to produce a preduction of the value of y, say $y_{new}$, for a new observation we make, say $x_{new}$:
+\begin{equation}
+y_{new} = x_{new} w 
+\end{equation}
+
+However, in practice, the assumption all XY points in a dataset lie on same hyperplane and can thus be represented by a simple $Y = X w$ relation is unrealistic. In most real-life situations, points will possibly be found in locations close to such an ideal hiperplane, some above, some below, but they will not be \emph{all} part of the same plane. Figure \ref{fig.simple_line_many_points} ilustrates one such situation for the case where the X obervations only have one dimension.  
+\begin {figure}[H]
+\begin{center}
+  \input{minimization_and_loss_functions/line_example_many_points}
+\end{center}
+\caption{A dataset in which the data points do not lie all in the same hyperplane.}
+\label{fig.simple_line_many_points}
+\end {figure}
+
+There are several reasons for this to be the most frequent situation. Here are 3 of them:
+\begin{itemize}
+\item \textbf{Non-Linear Data} - The assumption that X and Y establish in fact linear relation may not hold. As it is easy to understand, the assimption on linearity can be reasoable in a number of cases - and in fact is even if it requires some extra work on the expanding the set of features - but it is very strong assumptions since many phenomena are not linear. So, even if we have perfect knowledge about the X objects, there may simply not be any linear function between the features we observe in X and the values of Y.
+\item \textbf{Incomplete Knowledge} - Even if the relations between X and Y are linear, our X observations may not contain all the attributes that are required to completely explain the values of Y. We may be missing an attribute whose value is important for determining the value of Y, so not including it will lead to a an hyperplane that will not be able to pass exactly through all values of Y (as we will explain later, this may actually be a good thing!)
+\item \textbf{Noise and Precision Issues} - Even if X and Y establish a trully linear relation and we have access to all required attributes of X to be able to explain Y, there is also the possibility that our readings on such attributes may be limited by precision or may be influenced by noise. If that is the case, then we will very likely see our points diverge from the ideal hyperplane.
+\end{itemize}
+
+No matter what the source of the divergency is, what we can say is that the relation between Y and X in our dataset can no longer be represented by just $Y = X w$: there is an error involved in assuming this linear relation. 
+
+
+\subsection{Residuals}
+
+Suppose that $\hat{w}$ defines an ideal hyperplane that ``passes" through the data points (e.g. the line we see in Figure \ref{fig.simple_line_many_points}). Let $\hat{y}_i$ be value found on such hyperplane  at $X = x_i$ -- and which would be given by $\hat{y}_i = x_i w$ -- and $y_i$ be the \emph{true} Y value for the same X point. 
+
+Let us denote $r_i$ as the error that we incur by estimating the value of $y_i$ by $\hat{y}_i$. This error is often know as the \emph{residual} and for each data point can be expressed as (see Figure \ref{fig.simple_line_many_points}):
+\begin{equation}
+r_i = y_i - \hat{y}_i = y_i - x_i \hat{w} =  y_i - \hat{y}_i 
+\end{equation}
+Alternatively, we can express all the residuals in the dataset in matrix notation. Let R be the vector contains n residuals ($r_1$, $r_2$ ... $r_n$):
+\begin{equation}
+\begin{bmatrix}
+r_1 \\
+r_2 \\
+... \\
+r_n
+\end{bmatrix}
+\end{equation}
+The vector of residuals is given by 
+\begin{equation}
+R = Y - \hat{Y} = Y - X \hat{w} = Y - \hat{Y}
+\end{equation}
+
+Ideally, the hyperplane $\hat{w}$ is such that ``fits well" the data, i.e. that passes in between data points so that our residuals are as ``small" as possible. However, although this makes total sense from an intuitive point of view, this is still a very ambiguous definition. What does ``fits well" or ``small" actually mean? Depending on how we define ``well" or ``small", totally different hyperplanes may be considered ideal.
+
+Also, we should note that the vector of residual R contains explicit information on how far is \emph{each} of our individual estimates $\hat{y}_i$ is from the true value $y_i$ for all points of the dataset. This gives us the flexibility to consider if we want to define ``well" or ``small" as \emph{global measure} for all points, or if we want to take into account particulat situation that may arise with specific points of our dataset. For example, we may wish all the residuals to be as small possible in \emph{average} -- i.e. impose a global criteria over all points -- or we may want to focus on what can happen for the worst possible estimate -- i.e. we may want to find a hyperplane that ensures that none of the residual is larger than $r_{max}$, even if in average the residuals are high. Chosing how we measure errors will have huge impact on the resulting hyperplane $\hat{w}$. 
+
+\subsection{Formally Quantifying Error: Loss Functions}
+As we saw in the previous section, there may be multiple ways of quantifying the error given a vector of residuals. Let us formalize this by using the concept of \emph{loss function}. Let $\mathcal{L}$ be a function that takes as input an n dimensional vector R of residuals and produces a non-negative value l, which we will for now informally name as \emph{loss}:
+\begin{equation}
+\mathcal{L} : \mathcal{R}_n \rightarrow \mathcal{R}^{+}
+\end{equation}
+\begin{equation}
+\mathcal{L}(R) = l \ge 0
+\end{equation}
+Then, given a specific loss function $\mathcal{L}$, we can now formalize the problem of finding the ``best" hyperplane as finding $\hat{w}$ that minimizes that loss function (i.e. a function of residuals):
+\begin{equation}
+\begin{aligned}
+& \underset{R}{\text{minimize}} & & \mathcal{L}(R) \\
+& \text{subject to} & &  R = Y - X \hat{w} = Y - \hat{Y} 
+\end{aligned}
+\end{equation}
+Since X and Y are given (they are our dataset!), the only free parameter is $\hat{w}$, so this minimzation setting does in fact correspond to finding the optimal hyperplane that fits the data given the specific loss function chosen. 
+
+Let us generalize this formulation even more by having the loss function $\mathcal{L}$ not depend directly on the vector of residuals R, but instead on the Y and $\hat{Y}$, i.e. $\mathcal{L}(Y,\hat{Y})$. Obviously, the R vector is a function of Y and $\hat{Y}$ ($R = Y - \hat{Y}$) but by making the loss function explictly depend on Y and $\hat{Y}$ we are not imposing any specific function for measuring how Y and $\hat{Y}$ diverge. Most of the times, we will in fact compute the lost based on the the residuals, but there is no reason for not considering different functions.
+
+Therefore, the previous minimization problem can be reformulated as:
+
+\begin{equation}
+\begin{aligned}
+& \underset{R}{\text{minimize}} & & \mathcal{L}(Y, \hat{Y}) \\
+& \text{subject to} & & \hat{Y} = X \hat{w}  
+\label{eq.fundamental_minimization_problem}
+\end{aligned}
+\end{equation}
+
+We are now left with a few open question:
+\begin{itemize}
+\item what loss functions are there available?
+\item given some criteria we wish to impose on the solution, which loss function should we choose to ensure that such criteria is met? 
+\item given a specific loss function, how do we proceed in solving the optimization resulting problem?
+\end{itemize}
+These questions are all interrelated, so in the next section we will present some frequently used loss functions and discuss some of the implications of using them.
+
+\subsection{Some Useful Loss Functions for Regression}
+
+\begin {figure}[H]
+\begin{center}
+  \input{minimization_and_loss_functions/loss_functions}
+\end{center}
+\caption{Illustration of the shape of the absolute ($\mathcal{L}_{L1}$) and quadratic ($\mathcal{L}_{L2}$) loss functions.}
+\label{fig.loss_functions}
+\end {figure}
+
+\subsubsection{Absolute Loss / L1 Loss}
+The \emph{absolute loss} is a very intuitive loss function. Given the vector of true values, Y, and vector of predictions, $\hat{Y}$, the \emph{absolute loss} is obtained by summing the \emph{absolute value} of the distances between the each true value $y_i$ and the corresponding prediction $\hat{y}_i$:
+
+\begin{equation}
+\mathcal{L}_{L1}(Y, \hat{Y}) = \sum_n | y_i - \hat{y}_i |
+\end{equation}
+
+Although the absolute loss has an intuitive formulation (and has the advantage of being robust to outliers as we will see  next), it brings some difficulties for solving the minimization problem we outlined in Equation \ref{eq.fundamental_minimization_problem}. As it is possible to see from Figure \ref{fig.loss_functions}, thr $\mathcal{L}_{L1}$ function is a convex function but it has no derivative defined at its minimum point (i.e. when $ y_i = \hat{y}_i$). Because of this, we can not find closed form solution to Equation \ref{eq.fundamental_minimization_problem}, and we thus need to resort to numerical methods. Even then, as we increse the dimensionality of X (and hence of $\hat{w}$), the (numerical) solution to the minimization problem tends to become very unstable because of this discontinuity around the minimum.
+
+\subsubsection{Quadratic Loss / Squared Loss / L2 Loss}
+The \emph{quadratic loss}, also know as \emph{squared loss} or the \emph{L2 loss}, is defined as:
+
+\begin{equation}
+\mathcal{L}_{L2}(Y, \hat{Y}) = \sum_n {(y_i - \hat{y}_i)}^2
+\end{equation}
+Compared to the $\mathcal{L}_{L1}$ loss (see Figure \ref{fig.loss_functions}), the $\mathcal{L}_{L2}$ is much smoother around the minimum. We can represent the quadratic loss in a more compact way if we use the matrix notation. For that it is sufficient to observe that:
+\begin{equation}
+\sum_n {(y_i - \hat{y}_i)}^2 = (Y - \hat{Y})^T(Y - \hat{Y})
+\end{equation}
+This allows us to express the quadratic loss as an explicity function of the hyperplane, via $\hat{w}$
+\begin{equation}
+\mathcal{L}_{L2}(Y, \hat{Y}) = \mathcal{L}_{L2}(Y, X, \hat{w}) = (Y - X \hat{w})^T(Y - X \hat{w}) 
+\end{equation}
+The quadratic loss has the very convinient property of being both convex and double diferentiable in relation with $\hat{w}$. As we will see in the next Chapter, this property makes it possible to solve the optimization problem of finding the ``best" hyperplane for fitting the data (Equation \ref{eq.fundamental_minimization_problem}) addressable via a closed form solution. 
+
+It is important to note, however, that the squared loss has one important known pathology: it is very sensitive to outliers, i.e. values of $y_i$ that are part of our XY dataset but which, by some reason (e.g. a extremely noisy measurment, were incorrectly included in the dataset, etc) are significantly different from the rest of the values. Since the squared loss penalizes $\hat{y}_i$ based on the square of its distance to the ``true"  value, an outlier in our dataset will have a undesirable large contribution to the finalvalue of the loss and thus unproportionally influence the result of the optimization problem. A single outlier point, may bring the hyperplane closer to its location, sacrifyicing the fitting obtained on all other points. 
+
+On the other hand, the absolute loss that we saw in the previous section is more robust to the outliers problem since, given an outlier, its weight in the final loss will be proportianla to his ``divergence" from the typical values. 
+
+\subsubsection{Quantile Loss}
+
+TODO
+
+\subsubsection{Conclusions}
+The problem of finding the hyperplane that best fits a XY dataset can be formulated as an optimization problem, where we try to minimize the value of a loss function $\mathcal{L}(Y, \hat{Y})$ for a given dataset X and Y, subject to the restriction that $\hat{Y}$ has to be a linear function of the X, i.e. $\hat{Y} = X \hat{w}$. In this scenario, the only free parameter we have is the $\hat{w}$ which defines the hyperplane itself, so solving the optimization problem will give us the best fitting hyperplane.
+
+
+As designers, we can chose the specific loss function to be plugged in the optimization problem. Depending on the loss function we select, we will in fact force different types of solutions to the problem in terms of how close the hyperplane passes to certain points in our dataset. Different loss functions also pose different mathematical challenges for solving the optimization problem. In the next two Chapters we will present approaches to solving the minimization problem under two different loss functions: the  squared loss and the absolute loss.
+
+\subsection{Exercises}
+\textbf{Exercise 1}: Consider the following loss function, commonly know as \emph{0-1 Loss}:
+\begin{equation}
+\mathcal{L}_{01}(Y, \hat{Y}) = \sum_n \mathds{1}(y_i, \hat{y}_i) 
+\end{equation}
+with $\mathds{1}(y_i, \hat{y}_i)$ being and \emph{indicator function} such that:
+\begin{equation}
+\mathds{1}(y_i, \hat{y}_i)
+  \begin{cases}
+  0 & \text{if $\hat{y}_i = y_i$} \\
+  1 & \text{if $\hat{y}_i \ne y_i$}
+  \end{cases}
+\end{equation}
+If we try to solve the minimization problem \label{eq.fundamental_minimization_problem} for finding the best regression hyperplane under \emph{0-1 Loss}, what do we expect the solution to be? What are the properties of the hyperplane? Also, what pathologies can occur from applying this loss function?
+\\
+
+\textbf{Exercise 2}: Consider the following loss function:
+\begin{equation}
+\mathcal{L}_{L(2p)}(Y, \hat{Y}) = \sum_n {(y_i - \hat{y}_i)}^{2p}
+\end{equation}
+where $p \in \mathbb{N}_0$. Clearly, if we make $p=1$, we obtain the quadratic loss $\mathcal{L}_{L2}$. But what loss function do we get if we make p = 0?
+\\
+
+\textbf{Exercise 3}: Consider the loss function $\mathcal{L}_{L(2p)}$ defined in the previous exercise. Suppose that we use this such abstract loss function in the minimization problem defined by Equation \ref{eq.fundamental_minimization_problem}. Explain what is the impact of changing p from 0 to $\infty$ in terms of properties of the resulting hyperplane and in terms of robustness of the solution to outliers?
