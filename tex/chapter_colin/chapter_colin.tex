@@ -58,8 +58,140 @@ we'll develop another fictitious example to help us explore
 
 \subsection{Extended Example: Income by City}
 
-Suppose we wanted to build a model to help us predict income based on a person's
-city of residence.  
+Suppose we wanted to understand (and predict) how a person's city of residence
+impacts their starting income in their first professional job. To simplify our
+work, let's say we're interested in particular job category ("Data Scientist"),
+and we're interested in the "residence" effect between the cities of Seattle and
+Detroit.\\
+\\
+%\begin{center}
+\begin{tabular}{ | l | l | l |}
+\hline
+\multicolumn{3}{ |c| }{Data Scientist Starting Salaries} \\
+\hline
+Example Id  & City & Income \\ \hline
+000 &  Seattle  & \$107,805 \\ \hline    
+001 &  Seattle  & \$107,150 \\ \hline 
+002 &  Detroit  & \$106,826 \\ \hline 
+003 &  Detroit  & \$ 94,399 \\ \hline 
+004 &  Detroit  & \$ 95,589 \\ \hline 
+005 &  Seattle  & \$105,981 \\ \hline 
+006 &  Detroit  & \$101,601 \\ \hline 
+007 &  Seattle  & \$108,543 \\ \hline 
+008 &  Seattle  & \$115,971 \\ \hline 
+009 &  Detroit  & \$100,728 \\ \hline 
+
+\end{tabular}
+\\
+\\
+%\end{center}
+
+Forgetting about regression for a moment, how might we handle this problem given
+this data? A simple solution is to estimate the mean salary for each city and
+compare.  Explicitly, this means we'd calculate:\\
+\\
+Detroit:
+\begin{equation} 
+\frac{\$106,826 + \$94,399 + \$95,589 + \$101,601 + \$100,728}{5} = \$99,828.60
+\end{equation}
+Seattle:
+\begin{equation} 
+\frac{\$107,805 + \$107,150 + \$105,981 + \$108,543 + \$115,971}{5} = \$109,090.00
+\end{equation}
+
+Then we'd estimate the city-level effect to be
+\begin{equation} 
+\$109,090.00 - \$99,828.60 = \$9,261.40 
+\end{equation}
+
+Now let's take a look at how we would solve this problem in a linear regression
+framework, and see how it compares to the simple averaging methodology.
+
+First, we need to encode the city membership in terms of binary x-variables
+(features) of the model.  There are two obvious ways to do this. \\
+\\
+1. Create two symmetric variables: one where '1' indicates to Seattle residence,
+and a second where '1' indicates Detroit residence.\\
+\\
+2. Create a single city indicator and a "bias" variable.  For example, a variable
+like the above which is '1' for Seattle residents and '0' for Detroit.  The
+second (bias) variable takes the value '1' for all data points, regardless of
+their residency.\\
+\\
+Let's start with the first strategy.  In this case, our data is represented like
+this:\\
+\\
+%\begin{center}
+\begin{tabular}{ | l | l | l || c |}
+\hline
+\multicolumn{4}{ |c| }{Data Scientist Starting Salaries -- Inidicator Variable Encoding} \\
+\hline
+Example Id & Seattle\_indicator & Detroit\_indicator & Income \\ \hline
+000 &  1  &  0  & \$107,805 \\ \hline    
+001 &  1  &  0  & \$107,150 \\ \hline 
+002 &  0  &  1  & \$106,826 \\ \hline 
+003 &  0  &  1  & \$ 94,399 \\ \hline 
+004 &  0  &  1  & \$ 95,589 \\ \hline 
+005 &  1  &  0  & \$105,981 \\ \hline 
+006 &  0  &  1  & \$101,601 \\ \hline 
+007 &  1  &  0  & \$108,543 \\ \hline 
+008 &  1  &  0  & \$115,971 \\ \hline 
+009 &  0  &  1  & \$100,728 \\ \hline 
+
+\end{tabular}
+%\end{center}
+\\
+\\
+Now we can express the components in the OLS regression solution formula.  The
+design matrix and target variable are:
+
+\[
+X = \left(\begin{array}{cc}
+          1  &  0 \\ 
+          1  &  0 \\ 
+          0  &  1 \\ 
+          0  &  1 \\ 
+          0  &  1 \\ 
+          1  &  0 \\ 
+          0  &  1 \\ 
+          1  &  0 \\ 
+          1  &  0 \\ 
+          0  &  1
+\end{array}\right)
+,
+\quad\quad
+Y = \left(\begin{array}{c}
+         107,805 \\ 
+         107,150 \\ 
+         106,826 \\ 
+          94,399 \\ 
+          95,589 \\ 
+         105,981 \\ 
+         101,601 \\ 
+         108,543 \\ 
+         115,971 \\ 
+         100,728 
+\end{array}\right)
+\] 
+
+Let's break the OLS equation ($\hat{w} = (X^T X)^{-1} X^T Y $) down
+piece-by-piece:
+
+\[
+Y = \left(\begin{array}{c}
+         107,805 \\ 
+         107,150 \\ 
+         106,826 \\ 
+          94,399 \\ 
+          95,589 \\ 
+         105,981 \\ 
+         101,601 \\ 
+         108,543 \\ 
+         115,971 \\ 
+         100,728 
+\end{array}\right)
+\] 
+
 
 
 
