@@ -1,0 +1,28 @@
+\section{Real Models and Real Problems: Feature Colinearity}
+
+We've worked through the matrix algebra in an abstract mathematical setting to show the fundamental equation that drives ordinary least squares regression:
+
+\begin{equation}
+\hat{w} = (X^T X)^{-1} X^T Y
+\end{equation}
+
+It might be tempting at this point to accept this equation and move on, considering it just a tool for future use.  We propose another perspective: that this equation is a \emph{starting} point for building our intuitions and deepening our understanding; that it's a distilled essence that has much to teach us. \\
+
+It will be easier to dive into this equation if we consider a new type of x-variable/model feature--binary-valued features.  
+So far, we've worked exclusively with x-variables that can take on arbitrary floating point (real) values.  
+Such variables are important and have wide application, but equally important are binary features--x-variables that are allowed to take on only two values, 0 or 1.\\
+
+At first, binary features may seem constritive compared to real features, but in fact they can allow our models to become quite a bit \emph{more} flexible.  Consider the following (fictional) example of algae mass as a function of concentration of the algae-unfriendsly chemical X.  As the concentration rises, algae mass decreases to zero, but the rate of decrease slows as the concentration increases, and of course the algae mass cannot be negative.  A linear fit using the real value of the concentration fails on both of these counts, and would clearly not generalize well to high concentrations.\\
+
+Another option is to "bin" concentration values (less than 1, 1-2, 2-5, 5-10, more than 10), and establish binary variables corresponding to each bin.  So instead of having a single decimal number associated with it, each data point will have now 4 binary numbers associated with it (indicating whether or not the concentration is within each of the bins).  Of course for any data point, only a single bin membership variable will take the value 1, while the rest will be zero. \\
+
+NOTE: NEED PLOT\\
+
+
+
+This kind of binary variable representation therefore allows us to use a linear model framework to capture nonlinearities in the real variable.  Nothing is for free though, and the cost of this flexibility becomes at model training time. For our new 4-feature binary model, we now have to learn 4 coefficients, whereas in the single floating point model, we had to learn 2 (one for the concentration coefficient and one for the bias).  So the utility of this kind of strategy depends strongly on how much data is available.
+\\
+
+Though binning real valued features is a nice trick, it is by no means the only way binary variables come about.  Almost any membership description (e.g. any demographic membership) is naturally featurized as a binary variable.
+
+
