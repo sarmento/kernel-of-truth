@@ -65,6 +65,8 @@ and we're interested in the "residence" effect between the cities of Seattle and
 Detroit.\\
 \\
 %\begin{center}
+\begin{table}
+\centering
 \begin{tabular}{ | l | l | l |}
 \hline
 \multicolumn{3}{ |c| }{Data Scientist Starting Salaries} \\
@@ -82,6 +84,7 @@ Example Id  & City & Income \\ \hline
 009 &  Detroit  & \$100,728 \\ \hline 
 
 \end{tabular}
+\end{table}
 \\
 \\
 %\end{center}
@@ -91,11 +94,13 @@ this data? A simple solution is to estimate the mean salary for each city and
 compare.  Explicitly, this means we'd calculate:\\
 \\
 Detroit:
-\begin{equation} 
+\begin{equation}
+\label{naive_avg_1} 
 \frac{\$106,826 + \$94,399 + \$95,589 + \$101,601 + \$100,728}{5} = \$99,828.60
 \end{equation}
 Seattle:
-\begin{equation} 
+\begin{equation}
+\label{naive_avg_2}
 \frac{\$107,805 + \$107,150 + \$105,981 + \$108,543 + \$115,971}{5} = \$109,090.00
 \end{equation}
 
@@ -110,18 +115,20 @@ framework, and see how it compares to the simple averaging methodology.
 First, we need to encode the city membership in terms of binary x-variables
 (features) of the model.  There are two obvious ways to do this. \\
 \\
-1. Create two symmetric variables: one where '1' indicates to Seattle residence,
-and a second where '1' indicates Detroit residence.\\
+1. Create two symmetric \emph{indicator} variables: one where '1' indicates to
+Seattle residence, and a second where '1' indicates Detroit residence.\\
 \\
-2. Create a single city indicator and a "bias" variable.  For example, a variable
-like the above which is '1' for Seattle residents and '0' for Detroit.  The
-second (bias) variable takes the value '1' for all data points, regardless of
-their residency.\\
+2. Create a single city indicator and a "bias" variable.  The indicator variable
+could be the above where '1' indicates Seattle residency and '0' indicates
+Detroit.  The difference in the second (bias) variable, which takes the value
+'1' for all data points, regardless of residency.\\
 \\
 Let's start with the first strategy.  In this case, our data is represented like
 this:\\
 \\
 %\begin{center}
+\begin{table}
+\centering
 \begin{tabular}{ | l | l | l || c |}
 \hline
 \multicolumn{4}{ |c| }{Data Scientist Starting Salaries -- Inidicator Variable Encoding} \\
@@ -139,6 +146,8 @@ Example Id & Seattle\_indicator & Detroit\_indicator & Income \\ \hline
 009 &  0  &  1  & \$100,728 \\ \hline 
 
 \end{tabular}
+\label{income_indicator_rep}
+\end{table}
 %\end{center}
 \\
 \\
@@ -174,11 +183,19 @@ Y = \left(\begin{array}{c}
 \end{array}\right)
 \] 
 
-Let's break the OLS equation ($\hat{w} = (X^T X)^{-1} X^T Y $) down
-piece-by-piece:
+Now let's break the OLS equation ($\hat{w} = (X^T X)^{-1} X^T Y $) down
+piece-by-piece. \\
+\\
+First let's examine the product of the design matrix and the target.
 
-\[
-Y = \left(\begin{array}{c}
+\begin{align}
+X^T Y &= 
+\left(\begin{array}{cccccccccc}
+         1 & 1 & 0 & 0 & 0 & 1 & 0 & 1 & 1 & 0 \\
+         0 & 0 & 1 & 1 & 1 & 0 & 1 & 0 & 0 & 1
+\end{array}\right)
+\cdot
+\left(\begin{array}{c}
          107,805 \\ 
          107,150 \\ 
          106,826 \\ 
@@ -190,7 +207,109 @@ Y = \left(\begin{array}{c}
          115,971 \\ 
          100,728 
 \end{array}\right)
-\] 
+\\
+X^T Y &= 
+\left(\begin{array}{c}
+         107,805 + 107,150 + 105,981 + 108,543 + 115,971 \\
+         106,826 +  94,399 +  95,589 + 101,601 + 100,728 
+\end{array}\right)
+\end{align}
+\\
+If you're noticing similarities to the naive averages in ~\ref{naive_avg_1} and
+~\ref{naive_avg_2}, you're on the right track.\\
+
+Now let's look at the product of the design matrix with itself:
+\begin{align}
+X^T X &=
+\left(\begin{array}{cccccccccc}
+          1 & 1 & 0 & 0 & 0 & 1 & 0 & 1 & 1 & 0 \\
+          0 & 0 & 1 & 1 & 1 & 0 & 1 & 0 & 0 & 1
+\end{array}\right)
+\cdot
+\left(\begin{array}{cc}
+          1  &  0 \\ 
+          1  &  0 \\ 
+          0  &  1 \\ 
+          0  &  1 \\ 
+          0  &  1 \\ 
+          1  &  0 \\ 
+          0  &  1 \\ 
+          1  &  0 \\ 
+          1  &  0 \\ 
+          0  &  1
+\end{array}\right)
+\\
+X^T X &=
+\left(\begin{array}{cc}
+          5 & 0 \\
+          0 & 5 
+\end{array}\right)
+\end{align}
+\\
+Diagonal matrices are notoriously easy to invert, so the factor that explicitly
+appears in the OLS equation is:
+\begin{equation}
+(X^T X)^{-1} =  
+\left(\begin{array}{cc}
+          \frac{1}{5} & 0 \\
+          0           & \frac{1}{5} 
+\end{array}\right)
+\end{equation}
+\\
+Putting this all together gives:
+\begin{align} 
+\hat{w} &= (X^T X)^{-1} X^T Y 
+\\
+\hat{w} &= 
+\left(\begin{array}{cc}
+          \frac{1}{5} & 0 \\
+          0           & \frac{1}{5} 
+\end{array}\right)
+\cdot
+\left(\begin{array}{c}
+         107,805 + 107,150 + 105,981 + 108,543 + 115,971 \\
+         106,826 +  94,399 +  95,589 + 101,601 + 100,728 
+\end{array}\right)
+\\
+\\
+\hat{w} &= 
+\left(\begin{array}{c}
+         \displaystyle\frac{107,805 + 107,150 + 105,981 + 108,543 + 115,971}{5} \\
+         \\
+         \displaystyle\frac{106,826 +  94,399 +  95,589 + 101,601 + 100,728}{5} 
+\end{array}\right)
+\\
+\hat{w} &= 
+\left(\begin{array}{c}
+          109,090.00 \\
+          99,828.60
+\end{array}\right)
+\end{align}
+\\
+The OLS calculation not only give the same answer as the naive averaging, it
+encodes the exact logic of that calculation.  The calculation of $X^T Y$ simply
+collects the measured incomes into the two groups based on residency and sums
+them, while the calculation of $(X^T X)^{-1}$ constructs the multiplier
+($1/5$) to take the average for each group. In this case, we had equal sized
+groups, so the averaging process requires the same divisor for both groups.
+However, had the groups been of differing sizes, the OLS equation would
+have gracefully adjusted the denominator as required by the group size.\\
+%\\
+%For those of you who may remember your early statistics classes, you may have
+%seen the the problem of calculating observational means on different
+%sub-populations handled by a technique calle ANOVA. The prototype ANOVA
+%experiment would be one in which differing treatments ($t_i$) are given to
+%sub-populations ($i$), and their relative effects on an output variable ($y$)
+%are to be measured....NEEDS MORE\\
+\\
+As we developed our indicator-variable representation of table 
+\ref{income_indicator_rep}, we noted an alternative represention, using a single
+binary indicator variable (Seattle-hood), and a "binary" bias variable, which
+was identically '1' for all data examples.   
+
+
+
+
 
 
 
