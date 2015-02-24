@@ -123,11 +123,11 @@ could be the above where '1' indicates Seattle residency and '0' indicates
 Detroit.  The difference in the second (bias) variable, which takes the value
 '1' for all data points, regardless of residency.\\
 \\
-Let's start with the first strategy.  In this case, our data is represented like
-this:\\
-\\
-%\begin{center}
+Let's start with the first strategy.  In this case, our data is represted as
+shown in table \ref{income_indicator_rep}\\
+
 \begin{table}
+\label{income_indicator_rep}
 \centering
 \begin{tabular}{ | l | l | l || c |}
 \hline
@@ -146,11 +146,10 @@ Example Id & Seattle\_indicator & Detroit\_indicator & Income \\ \hline
 009 &  0  &  1  & \$100,728 \\ \hline 
 
 \end{tabular}
-\label{income_indicator_rep}
+\caption{Income per person by city of residence data, represented in terms of symmetric
+indicator variables (one for each city).}  
 \end{table}
-%\end{center}
-\\
-\\
+
 Now we can express the components in the OLS regression solution formula.  The
 design matrix and target variable are:
 
@@ -289,11 +288,14 @@ Putting this all together gives:
 The OLS calculation not only give the same answer as the naive averaging, it
 encodes the exact logic of that calculation.  The calculation of $X^T Y$ simply
 collects the measured incomes into the two groups based on residency and sums
-them, while the calculation of $(X^T X)^{-1}$ constructs the multiplier
-($1/5$) to take the average for each group. In this case, we had equal sized
-groups, so the averaging process requires the same divisor for both groups.
-However, had the groups been of differing sizes, the OLS equation would
-have gracefully adjusted the denominator as required by the group size.\\
+them, while the calculation of $X^T X$ counts examples in each class, making
+$(X^T X)^{-1}$ into the multipliers ($1/5$) to calculate the means. In this
+case, we had equal sized groups, so the averaging process requires the same
+divisor for both groups.  However, had the groups been of differing sizes, the
+OLS equation would have gracefully adjusted the denominator as required by the
+group size.\\
+\\
+To generalize (and develop some notation)
 %\\
 %For those of you who may remember your early statistics classes, you may have
 %seen the the problem of calculating observational means on different
@@ -302,10 +304,233 @@ have gracefully adjusted the denominator as required by the group size.\\
 %sub-populations ($i$), and their relative effects on an output variable ($y$)
 %are to be measured....NEEDS MORE\\
 \\
-As we developed our indicator-variable representation of table 
-\ref{income_indicator_rep}, we noted an alternative represention, using a single
-binary indicator variable (Seattle-hood), and a "binary" bias variable, which
-was identically '1' for all data examples.   
+When we developed our indicator-variable representation of table
+\ref{income_indicator_rep} \{REFERENCE WRONG\}, we noted that there was an
+alternative represention, using a single binary indicator variable
+(Seattle-hood), and a "binary" bias variable, which was identically '1' for all
+data examples.  We show this representation in table \ref{bias_residence_rep}. 
+
+\begin{table}
+\label{bias_residence_rep}
+\centering
+\begin{tabular}{ | l | l | l || c |}
+\hline
+\multicolumn{4}{ |c| }{Data Scientist Starting Salaries -- Inidicator Variable Encoding} \\
+\hline
+Example Id & Bias & Residence & Income \\ \hline
+000 &  1  &  1  & \$107,805 \\ \hline    
+001 &  1  &  1  & \$107,150 \\ \hline 
+002 &  1  &  0  & \$106,826 \\ \hline 
+003 &  1  &  0  & \$ 94,399 \\ \hline 
+004 &  1  &  0  & \$ 95,589 \\ \hline 
+005 &  1  &  1  & \$105,981 \\ \hline 
+006 &  1  &  0  & \$101,601 \\ \hline 
+007 &  1  &  1  & \$108,543 \\ \hline 
+008 &  1  &  1  & \$115,971 \\ \hline 
+009 &  1  &  0  & \$100,728 \\ \hline 
+\end{tabular}
+\caption{Income per person by city of residence data, represented in terms of
+bias and residence variables.}
+\end{table}
+\begin{equation}
+X^T X =
+\left(\begin{array}{cccccccccc}
+          1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 \\
+          1 & 1 & 0 & 0 & 0 & 1 & 0 & 1 & 1 & 0 
+\end{array}\right)
+\cdot
+\left(\begin{array}{cc}
+         1  &  1  \\ 
+         1  &  1  \\ 
+         1  &  0  \\ 
+         1  &  0  \\ 
+         1  &  0  \\ 
+         1  &  1  \\ 
+         1  &  0  \\ 
+         1  &  1  \\ 
+         1  &  1  \\ 
+         1  &  0 
+\end{array}\right)
+=
+\left(\begin{array}{cc}
+          10 & 5 \\
+          5  & 5 
+\end{array}\right)
+\end{equation}
+\\
+Unlike last time, where the diagonal terms counted the membership in each class,
+here the diagonal encodes the number of 1's in the bias vector (10) and the
+number of data points from the Seattle indicator class (5).  This time, let's
+factor the matrix a bit.  There's nothing special about having 5 training
+examples in each class, after all. Going forward we'll refer to the total number
+of trianing examples as $N_e$.
+\\
+\begin{equation}
+X^T X =
+\left(\begin{array}{cc}
+          10 & 5 \\
+          5  & 5 
+\end{array}\right)
+= 5
+\left(\begin{array}{cc}
+          2 & 1 \\
+          1 & 1 
+\end{array}\right)
+= \frac{N_e}{2}
+\left(\begin{array}{cc}
+          2 & 1 \\
+          1 & 1 
+\end{array}\right)
+\end{equation}
+\\
+Giving:
+\begin{equation}
+(X^T X)^{-1} = \frac{2}{N_e}
+\left(\begin{array}{cc}
+          1  & -1 \\
+         -1  &  2 
+\end{array}\right)
+\end{equation}
+
+We also have
+\begin{align}
+X^T Y &= 
+\left(\begin{array}{cccccccccc}
+         1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 \\
+         1 & 1 & 0 & 0 & 0 & 1 & 0 & 1 & 1 & 0 \\
+\end{array}\right)
+\cdot
+\left(\begin{array}{c}
+         107,805 \\ 
+         107,150 \\ 
+         106,826 \\ 
+          94,399 \\ 
+          95,589 \\ 
+         105,981 \\ 
+         101,601 \\ 
+         108,543 \\ 
+         115,971 \\ 
+         100,728 
+\end{array}\right)
+\\
+X^T Y &= 
+\left(\begin{array}{c}
+         107,805 + 107,150 + 106,826 + ... + 108,543 + 115,971 + 100,728 \\
+         107,805 + 107,150 + 105,981 + 108,543 + 115,971 
+\end{array}\right)
+\end{align}
+The sum on top is over all data points, while the bottom is the sum over all
+Seattle incomes.
+We can factor this term similarly to $X^T X$ if we note that the average
+over all incomes ($\bar{Y}$) is $\$104,459.3$, and the average over Seattle
+incomes ($\bar{Y}_{Sea}$) is
+$\$109,090.0$.
+\begin{align}
+X^T Y &= \frac{N_e}{2} 
+\left(\begin{array}{c}
+         2 \cdot 104,459.3 \\
+         109,090.0 
+\end{array}\right)
+= 
+\left(\begin{array}{c}
+         2 \cdot \bar{Y} \\
+          \bar{Y}_\mathit{Sea} 
+\end{array}\right)
+\end{align}
+Now let's calculate the model coefficients:
+\begin{align}
+\hat{w} = (X^T X)^{-1} X^T Y
+&= \frac{2}{N_e}
+\left(\begin{array}{cc}
+          1  & -1 \\
+         -1  &  2 
+\end{array}\right)
+\cdot 
+\frac{N_e}{2} 
+\left(\begin{array}{c}
+         2 \cdot \bar{Y} \\
+          \bar{Y}_\mathit{Sea} 
+\end{array}\right)
+\\
+&= 
+\left(\begin{array}{cc}
+          1  & -1 \\
+         -1  &  2 
+\end{array}\right)
+\left(\begin{array}{c}
+         2 \cdot \bar{Y} \\
+          \bar{Y}_\mathit{Sea} 
+\end{array}\right)
+\\
+&= 
+\left(\begin{array}{c}
+         2 \bar{Y} -   \bar{Y}_\mathit{Sea}  \\
+        -2 \bar{Y} + 2 \bar{Y}_\mathit{Sea} 
+\end{array}\right)
+\end{align}
+These terms may not look interpretable at first, but let's expand them out.
+We'll put the incomes from Seattle residents in bold to help clarify what's
+happening.
+\begin{align}
+\hat{w}_\mathit{bias} = 2 \bar{Y} -   \bar{Y}_{Sea} = \frac{1}{5}
+  (&\mathbf{107,805} + \mathbf{107,150} + 106,826 + 94,399 + 95,589 \\
+  &+ \mathbf{105,981} + 101,601 + \mathbf{108,543} + \mathbf{115,971} + 100,728)\\
+- &\frac{1}{5}(\mathbf{107,805} + \mathbf{107,150} + \mathbf{105,981} +
+\mathbf{108,543} + \mathbf{115,971})\\
+= \frac{1}{5}(&106,826 + 94,399 + 95,589 + 101,601 + 100,728) 
+= \$99,828.60
+\end{align}
+In calculating the model's bias coefficient, the matrix mathmatics is just
+encoding an average over non-Seattle incomes (in agreement with our previous
+results). This makes sense, because when we ask the model to predict an income,
+we'll calculate:
+\begin{equation}
+y = \hat{w}_\mathit{bias} \cdot 1 + \hat{w}_\mathit{Res} \cdot x_\mathit{Res}
+\end{equation}
+Where $x_\mathit{Res}$ is 1 if the resident is from Seattle, 0 if not. Thie
+means for a non-Seattle (Detroit) resident, the prediction is simply
+\begin{equation}
+y_\mathit{Det} = \hat{w}_\mathit{bias}
+\end{equation}
+The bias coefficient is the average of all Detroit residents because it is the
+sole term in the income prediction for Detroit residents.\\
+\\
+Let's do the same thing to the second model coefficient, which we'll call
+$\hat{w}_\mathit{Res}$. (Why not call this $\hat{w}_\mathit{Sea}$? Hang on and
+you'll see.)
+\begin{align}
+\hat{w}_\mathit{Res} 
+    &= -2 \bar{Y} + 2 \bar{Y}_\mathit{Sea} \\
+    &= -\frac{1}{5}(\mathbf{107,805} + \mathbf{107,150} + 106,826 + 94,399 + 95,589 \\
+    &\qquad + \mathbf{105,981} + 101,601 + \mathbf{108,543} + \mathbf{115,971} + 100,728)\\
+    &\quad + \frac{2}{5}(\mathbf{107,805} + \mathbf{107,150} + \mathbf{105,981} +
+                   \mathbf{108,543} + \mathbf{115,971})\\
+    &= \frac{1}{5}(\mathbf{107,805} + \mathbf{107,150} + \mathbf{105,981} +
+                   \mathbf{108,543} + \mathbf{115,971})\\
+    &\quad -\frac{1}{5}(106,826 + 94,399 + 95,589 + 101,601 + 100,728) 
+    &= \$9,261.39
+\end{align}
+The "residence" model coefficient is the difference between the average incomes
+in the two cities (or, equivalently, the average difference in income).  This
+makes sense in terms of model prediction, given the meaning of the bias
+coefficient.  For a Seattle resident, the model predicts
+\begin{align}
+y &= \hat{w}_\mathit{bias} \cdot 1 + \hat{w}_\mathit{Res} \cdot x_\mathit{Res}\\
+y &= \hat{w}_\mathit{bias} + \hat{w}_\mathit{Res}\\
+y &= \$99,828.60 + \$9,261.39 = \$109,090.00 
+\end{align}
+With the indicator variable encoding, the model weights represented mean values
+for each rewidency group, but for the bias/residency variable encoding, the
+model weights represent a mean for one of the groups (Detroit) and a
+differential effect size (the income gain one might expect when moving to
+Seattle from Detroit). Note that this doesn't affect the outcome, both models
+predict the same value for Seattle/Detroit resident incomes.  However, it's
+now clear why we cautioned against naming the second model coefficient
+$\hat{w}_\mathit{Sea}$.  This name could mislead us into thinking the model
+weight is the mean of the Seattle group, when in fact it's a measure of the
+emph{difference} between the groups. \\
+
+\subsection{More features, more problems}
 
 
 
