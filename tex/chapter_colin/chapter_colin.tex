@@ -295,7 +295,6 @@ divisor for both groups.  However, had the groups been of differing sizes, the
 OLS equation would have gracefully adjusted the denominator as required by the
 group size.\\
 \\
-To generalize (and develop some notation)
 %\\
 %For those of you who may remember your early statistics classes, you may have
 %seen the the problem of calculating observational means on different
@@ -310,9 +309,9 @@ alternative represention, using a single binary indicator variable
 (Seattle-hood), and a "binary" bias variable, which was identically '1' for all
 data examples.  We show this representation in table \ref{bias_residence_rep}. 
 
-\begin{table}
-\label{bias_residence_rep}
-\centering
+%\begin{table}
+%\label{bias_residence_rep}
+%\centering
 \begin{tabular}{ | l | l | l || c |}
 \hline
 \multicolumn{4}{ |c| }{Data Scientist Starting Salaries -- Inidicator Variable Encoding} \\
@@ -329,9 +328,13 @@ Example Id & Bias & Residence & Income \\ \hline
 008 &  1  &  1  & \$115,971 \\ \hline 
 009 &  1  &  0  & \$100,728 \\ \hline 
 \end{tabular}
-\caption{Income per person by city of residence data, represented in terms of
-bias and residence variables.}
-\end{table}
+\\
+\\
+%\caption{Income per person by city of residence data, represented in terms of
+%bias and residence variables.}
+%\end{table}
+Let's take a closer look at the components of the OLS equation in this
+represenation as well, starting wtih $X^T X$ 
 \begin{equation}
 X^T X =
 \left(\begin{array}{cccccccccc}
@@ -431,7 +434,7 @@ X^T Y &= \frac{N_e}{2}
          2 \cdot 104,459.3 \\
          109,090.0 
 \end{array}\right)
-= 
+= \frac{N_e}{2} 
 \left(\begin{array}{c}
          2 \cdot \bar{Y} \\
           \bar{Y}_\mathit{Sea} 
@@ -529,13 +532,431 @@ now clear why we cautioned against naming the second model coefficient
 $\hat{w}_\mathit{Sea}$.  This name could mislead us into thinking the model
 weight is the mean of the Seattle group, when in fact it's a measure of the
 emph{difference} between the groups. \\
+\\
+It's worth asking what happens if we try to combine these two representations.
+What if we have a bias column \emph{and} the two indicators? This would mean the
+model predictions would look like this:
+
+\begin{align}
+y &= \hat{w}_\mathit{bias} \cdot 1 
+     + \hat{w}_\mathit{Sea} \cdot x_\mathit{Sea}
+     + \hat{w}_\mathit{Det} \cdot x_\mathit{Det}\\
+\end{align}
+
+This looks pretty sensible, but what happens when we look at the design matrix?
+
+\begin{align}
+X^T X &=
+\left(\begin{array}{cccccccccc}
+          1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 \\
+          1 & 1 & 0 & 0 & 0 & 1 & 0 & 1 & 1 & 0 \\
+          0 & 0 & 1 & 1 & 1 & 0 & 1 & 0 & 0 & 1
+\end{array}\right)
+\cdot
+\left(\begin{array}{ccc}
+     1  &  1  &  0 \\ 
+     1  &  1  &  0 \\ 
+     1  &  0  &  1 \\ 
+     1  &  0  &  1 \\ 
+     1  &  0  &  1 \\ 
+     1  &  1  &  0 \\ 
+     1  &  0  &  1 \\ 
+     1  &  1  &  0 \\ 
+     1  &  1  &  0 \\ 
+     1  &  0  &  1
+\end{array}\right)
+\\
+X^T X &=
+\left(\begin{array}{ccc}
+      10 & 5 & 5 \\
+       5 & 5 & 0 \\
+       5 & 0 & 5 \\
+\end{array}\right)
+\end{align}
+\\
+At first glance, this looks fine, but try to calculate $(X^T X)^{-1}$ and you'll
+run into trouble. This matrix isn't invertible.  What's going on here? Why is
+the system fragile in this way? Roughly speaking, the problem is that the we've
+given the system \emph{too} many ways to make the prediction.  To fully
+understand what's happening here, it will help if we can start with a working
+system, and drive it closer and closer to breaking in this way.  Also, it will
+help if we start to talk about the assumptions implicit in the linear modeling
+framework.
 
 \subsection{More features, more problems}
 
+To get into this, let's return to our income prediction model, but this time,
+let's try to understand how well our model estimates converge to the "truth" as
+we sample more and more people. For that, of course, we need some "truth."  So,
+let's imagine we're modeling a system where average Detroit income is \$100,000
+per year, average Seattle income is \$110,000.  There will be some spread of
+incomes around the average, so let's assume that's well described by a Gaussian
+(normal) distribution, with scale (standard deviation) of \$10,000.\\
+\\
+FIGURE-COLIN-2\\
+\\
+This means the distribution of incomes looks something like FIGURE-COLIN-2.
+The means in the two cities are fairly well separated, but there is definitely
+overlap between the two distributions (meaning we should expect to see some
+reasonable number of Detroit residents with higher income than some
+Seattlites).\\
+\\
+We can write down the true equation we hope our model will discover.  We'll
+stick to the bias/residence variable encoding.\\
+\begin{align}
+y &= w_\mathit{bias} \cdot 1 
+    + w_\mathit{res} \cdot x_\mathit{res} \\
+&\mathit{or} \\
+y &= 100,000 \cdot 1 + 10,000 \cdot x_\mathit{res}
+\end{align}
+\\
+Now for the final twist.  Let's say we (the researcher) collect another variable
+for our model: favorite football team. Being open-minded, we're willing to
+consider the possibility that someone's football team of choice may in fact be
+driving income disparity, instead of (or in addition to) their residence.  Given
+the "true" model, the addition of the new variable is clearly spurious.  To be
+pedantic, we can of course explicitly include it in the formula.\\
+\begin{align}
+y &= w_\mathit{bias} \cdot 1 
+    + w_\mathit{res} \cdot x_\mathit{res} 
+    + w_\mathit{team} \cdot x_\mathit{team} 
+    + \epsilon \\
+&\mathit{or} \\
+y &= 100,000 \cdot 1 + 10,000 \cdot x_\mathit{res} + 0 \cdot x_\mathit{team} +
+\epsilon
+\end{align}
+\\
+Where $x_\mathit{team}=1$ if the person in question is a Seattle Seahawks fan, and is
+$0$ if the person is a Detroit Lions fan, and where we're using $\epsilon$ to
+indicate the normally distributed error term.  Given enough data, we expect to be
+able to detect that the model coefficient for the team is $0$, but intuitively,
+we should be worried.  What if we never observe a Seattle resident who is also a
+Lions fan, and/or we never observe a Detroit resident who is a Seahawks fan.  In
+that case, there would be no way to tell if it's people's Seattle-ness or
+Seahawk-loving-ness that's driving their higher income.  In fact, this
+is precisely what happened to the "double-encoding" example at the end of the
+last section. Let's dig into the linear algebra to flesh out that connection,
+and let's start with a small but non-zero chance of finding the unlikely
+fan/residence combinations.\\
+\\
+\begin{table}
+\label{data_generation_matrix_I}
+\centering
+\begin{tabular}{l  l  l}
+\hline
+\multicolumn{3}{ c }{Data generation matrix I} \\
+\hline
+Residence &  Team     &  Probability \\ \hline
+Seattle   &  Seahawks &  0.40 \\ \hline 
+Seattle   &  Lions    &  0.10 \\ \hline 
+Detroit   &  Seahawks &  0.45 \\ \hline 
+Detroit   &  Lions    &  0.05 \\ \hline  
+\end{tabular}
+\caption{Probability matrix describing the data generation}  
+\end{table}
+\\
+\begin{table}
+\label{sample_data_I}
+\centering
+\begin{tabular}{l|  l | l | l || c} 
+\hline
+\multicolumn{5}{ c }{Sample Data I} \\
+\hline
+Example Id &  bias &  $x_\mathit{res}$ &  $x_\mathit{team}$ &  $y$       \\ \hline
+000        &  1    &  0         &  0    &  \$78,949.27  \\ \hline  
+001        &  1    &  0         &  0    &  \$92,532.56  \\ \hline 
+002        &  1    &  1         &  1    & \$111,949.29  \\ \hline 
+003        &  1    &  0         &  1    &  \$94,651.07  \\ \hline 
+004        &  1    &  0         &  0    & \$107,132.24  \\ \hline 
+...        &  ...  &  ...       &  ...  & ...           \\ \hline 
+994        &  1    &  0         &  1    & \$102,143.79  \\ \hline 
+995        &  1    &  1         &  1    & \$109,388.13  \\ \hline 
+996        &  1    &  1         &  1    & \$102,288.42  \\ \hline 
+997        &  1    &  1         &  0    & \$110,736.66  \\ \hline 
+998        &  1    &  1         &  1    & \$118,216.87  \\ \hline 
+999        &  1    &  1         &  1    & \$121,005.16  \\ \hline 
+\end{tabular}
+\caption{Example data from the probabilty matrix above}  
+\end{table}
+\\
+The data under such conditions might look like that in table
+\ref{sample_data_I}.  Let's look at what kind of $X^T X$ a typical sampling
+might engender.
+\begin{align}
+X^T X &=
+\left(\begin{array}{ccccccccccc}
+          1 & 1 & 1 & 1 & 1 & ... & 1 & 1 & 1 & 1 & 1 \\
+          0 & 0 & 1 & 0 & 0 & ... & 0 & 1 & 1 & 1 & 1 \\
+          0 & 0 & 1 & 1 & 0 & ... & 1 & 1 & 0 & 1 & 1
+\end{array}\right)
+\cdot
+\left(\begin{array}{ccc}
+     1    &  0    &  0   \\ 
+     1    &  0    &  0   \\  
+     1    &  1    &  1   \\  
+     1    &  0    &  1   \\  
+     1    &  0    &  0   \\  
+     ...  &  ...  &  ... \\  
+     1    &  0    &  1   \\  
+     1    &  1    &  1   \\  
+     1    &  1    &  1   \\  
+     1    &  1    &  0   \\  
+     1    &  1    &  1   \\  
+     1    &  1    &  1     
+\end{array}\right)
+\\
+X^T X &=
+\left(\begin{array}{l}
+          \mathbf{b} \\
+          \mathbf{x}_\mathit{res} \\
+          \mathbf{x}_\mathit{team} 
+\end{array}\right)
+\cdot
+\left(\begin{array}{ccc}
+     \mathbf{b} & \mathbf{x}_\mathit{res} & \mathbf{x}_\mathit{team}  
+\end{array}\right)
+\\
+X^T X &=
+\left(\begin{array}{lll}
+          \mathbf{b} \cdot \mathbf{b} 
+              & \mathbf{b} \cdot \mathbf{x}_\mathit{res} 
+              & \mathbf{b} \cdot \mathbf{x}_\mathit{team}   
+              \\
+          \mathbf{x}_\mathit{res} \cdot \mathbf{b}  
+              & \mathbf{x}_\mathit{res} \cdot \mathbf{x}_\mathit{res} 
+              & \mathbf{x}_\mathit{res} \cdot \mathbf{x}_\mathit{team}   
+              \\
+          \mathbf{x}_\mathit{team} \cdot \mathbf{b}  
+              & \mathbf{x}_\mathit{team} \cdot \mathbf{x}_\mathit{res}     
+              & \mathbf{x}_\mathit{team} \cdot \mathbf{x}_\mathit{team}    
+\end{array}\right)
+\\
+X^T X &=
+\left(\begin{array}{ccc}
+          1000 & 507 & 558 \\
+           507 & 507 & 461 \\
+           558 & 461 & 558
+\end{array}\right)
+\end{align}
+Where we've introduced vector notation to help us understand each of the entries
+in the final matrix.  This notation helps illustrate the main point, that for
+binary varibles, $X^T X$ is always just a counts matrix.  The upper left $(0,0)$
+entry is the inner product of the bias vector with itself, which simply counts
+the total number of data points.  The $(1,1)$ entry is a count of seattle
+residents (recall $x_{res}=1$ indicates Seattle residency), and the $(2,2)$
+entry counts the number of Seahawks fans.  The off-diagonal entries are
+co-occurance counts.  For example the $(0,1)$ entry is the co-occurance of
+Seattle residency and the bias, which is again just a count of Seattle residents
+(since the bias is a vector of 1's).  The $(1,0)$ entry is identical, and the
+$(2,0)$ and $(0,2)$ entries are co-occurance counts of Seahawks fans with the
+bias, which again degenerates to just counting Seahawks fans.  The remaining
+entries $(1,2)$ and $(2,1)$ are city/team co-occurance counts, showing that of
+the 507 Seattle residents, only 461 are Seahawks fans.\\
+\\
+Let's calculate the model coefficients using $\hat{w} = (X^T X)^{-1} X^T Y$:
+\begin{align}
+  \hat{w}_\mathit{bias} &= 99735.33 \\
+  \hat{w}_\mathit{res}  &= 9721.63 \\
+  \hat{w}_\mathit{team} &= 624.16
+\end{align}
+This model did well.  We're only attributing \$624 to the football preference, and
+the bias and residence effect are very close to the true values.  However, we
+started with a pretty lenient assumption about crossover fans.  What if we
+aren't so generous.  
+\\
+\begin{table}
+\label{data_generation_matrix_II}
+\centering
+\begin{tabular}{l  l  l}
+\hline
+\multicolumn{3}{ c }{Data generation matrix I} \\
+\hline
+Residence &  Team     &  Probability \\ \hline
+Seattle   &  Seahawks &  0.490 \\ \hline 
+Seattle   &  Lions    &  0.010 \\ \hline 
+Detroit   &  Seahawks &  0.495 \\ \hline 
+Detroit   &  Lions    &  0.005 \\ \hline  
+\end{tabular}
+\caption{Probability matrix describing the data generation}  
+\end{table}
+\\
+Here are a few outcomes:\\
+\begin{align}
+  \hat{w}_\mathit{bias} &= 100184.83, 100020.99, 99812.83 \\
+  \hat{w}_\mathit{res}  &= 6450.88, 9813.06, 12833.04 \\
+  \hat{w}_\mathit{team} &= 2884.30, 455.14, -3083.80
+\end{align}
+The model is still attributing more importance to the city variable than to
+football team, but the variance in the team coefficient is very high now.
+(Note that the bias term is highly stable and unaffected by our city vs. team
+drama.)  To quantify this, we can run many models and calculate the mean and standard
+deviation of the coefficients.  We get:\\
+\begin{align}
+  \hat{w}_\mathit{bias} &= 100013.05 \pm 435.33 \\
+  \hat{w}_\mathit{res}  &= 9490.81 \pm 2754.02 \\
+  \hat{w}_\mathit{team} &= 552.82 \pm 2803.31
+\end{align}
+Intuitively, we know we have a problem here based on the data generation, but
+how can we quantify and identify it systematically?  The root cause of this
+problem is that we are lacking training data examples with a certain combination
+of variables, meaning the issue really doesn't depend on our depdendent variable
+(income) at all.  Let's look closely at a version of $X^T X$ in the case where
+we have a very low likelihood of "crossover" fans.
 
+\begin{align}
+X^T X &=
+\left(\begin{array}{ccc}
+          1000 & 507 & 504 \\
+           507 & 507 & 498 \\
+           504 & 498 & 504
+\end{array}\right)
+\\
+X^T X &=
+500 
+\left(\begin{array}{ccc}
+           2     & 1.014 & 1.008 \\
+           1.014 & 1.014 & 0.996 \\
+           1.008 & 0.996 & 1.008
+\end{array}\right)
+\end{align}
+Here's the key point: the last two columns of the matrix are very nearly equal
+(because derived fact that almost everyone in Seattle is a Seahawks fan and
+almost everyone in Detroit is a Lions fan).  We say the last two column vectors
+are nearly "colinear," and this has serious consequences when we try to invert
+this matrix.  Let's consider 
+\begin{align}
+(X^T X)^{-1} &=
+\frac{1}{500}
+\left(\begin{array}{ccc}
+           2     & 1.014 & 1.008 \\
+           1.014 & 1.014 & 0.996 \\
+           1.008 & 0.996 & 1.008
+\end{array}\right)^{-1}
+=
+\frac{1}{500}
+\left(\begin{array}{ccc}
+         1.0192  &  -0.6144 &  -0.4120 \\
+        -0.614 4 &  33.8632 & -32.8456 \\
+        -0.4120  & -32.8456 &  33.8587 
+\end{array}\right)^{-1}
+\end{align}
+Let's drive the matrix closer to fully colinear and see what happens to the
+inverse.  We won't change any single elment by more than 2\%.
+\begin{align}
+\left(\begin{array}{ccc}
+           2     & 1.001 & 1.001 \\
+           1.001 & 1.001 & 0.999 \\
+           1.001 & 0.999 & 1.001
+\end{array}\right)^{-1}
+=
+\left(\begin{array}{ccc}
+          1.0025 &   -0.5139  &   -0.4901 \\
+         -0.7338 &  244.3506  & -243.3473 \\
+         -0.2696 & -243.5679  &  244.5697
+\end{array}\right)^{-1}
+\end{align}
+The $\leq 2\%$ change in the matrix entries engenders a factor of 8 explosion in
+the inverse in some entries. Worse, some of these terms are very large and of
+opposite sign.  This creates the real problem, which we can see by looking at
+$X^T Y$.
 
+\begin{align}
+X^T Y = 
+\left(\begin{array}{l}
+          \mathbf{b} \\
+          \mathbf{x}_\mathit{res} \\
+          \mathbf{x}_\mathit{team} 
+\end{array}\right)
+\cdot
+\left(\begin{array}{c}
+          \mathbf{y}
+\end{array}\right)
+=
+\left(\begin{array}{r}
+          \mathbf{b} \cdot \mathbf{y} \\
+          \mathbf{x}_\mathit{res} \cdot \mathbf{y} \\
+          \mathbf{x}_\mathit{team} \cdot \mathbf{y}  
+\end{array}\right)
+\end{align}
+Remember, $\mathbf{y}$ is just our vector of incomes, so $\mathbf{b} \cdot
+\mathbf{y}$ is the sum over all incomes, or 1000 times the average income
+$\mathbf{\bar{y}}$  (if we have 1000 data points).  Similarly,
+$\mathbf{x}_\mathit{res} \cdot \mathbf{y}$ is proportional to the average over
+all Seattle residents' incomes ($\mathbf{\bar{y}}_\mathit{sea})$, and
+$\mathbf{x}_\mathit{team} \cdot \mathbf{y}$ is proportional to the average over
+all Seahawks fans' incomes ($\mathbf{\bar{y}}_\mathit{hawks}$).\\
 
-
-
+Let's stick with considering we have 1000 data points, just to keep things more
+concrete, and break down the final calculation of the model coefficients using
+our blown up matrix above. To be illustrative, we'll approximate the number of
+Seattle residents and the number of Seahawks fans as 500.
+\begin{align}
+\hat{w} = 
+(X^T X)^{-1} X^T Y &=
+\frac{1}{500}
+\left(\begin{array}{ccc}
+          1.0025 &   -0.5139  &   -0.4901 \\
+         -0.7338 &  244.3506  & -243.3473 \\
+         -0.2696 & -243.5679  &  244.5697
+\end{array}\right)^{-1}
+\cdot 
+\left(\begin{array}{r}
+          \mathbf{b} \cdot \mathbf{y} \\
+          \mathbf{x}_\mathit{res} \cdot \mathbf{y} \\
+          \mathbf{x}_\mathit{team} \cdot \mathbf{y}  
+\end{array}\right)
+\\
+\hat{w} &= 
+\frac{1}{500}
+\left(\begin{array}{ccc}
+          1.0025 &   -0.5139  &   -0.4901 \\
+         -0.7338 &  244.3506  & -243.3473 \\
+         -0.2696 & -243.5679  &  244.5697
+\end{array}\right)^{-1}
+\cdot 
+500
+\left(\begin{array}{l}
+          2 \mathbf{\bar{y}} \\
+          \mathbf{\bar{y}}_\mathit{sea} \\
+          \mathbf{\bar{y}}_\mathit{hawks}
+\end{array}\right)
+\end{align}
+Giving us, with a little rounding,
+\begin{align}
+\left(\begin{array}{l}
+          \hat{w}_\mathit{bias} \\
+          \hat{w}_\mathit{res} \\
+          \hat{w}_\mathit{team} 
+\end{array}\right)
+&=
+\left(\begin{array}{l}
+          \quad 2 \cdot (1.00)  \, \mathbf{\bar{y}}
+                 - \;\;\; 0.51 \,\, \mathbf{\bar{y}}_\mathit{sea} 
+                 - \;\;\; 0.49 \,\, \mathbf{\bar{y}}_\mathit{hawks} \\
+          \ 2 \cdot (-0.73) \,\, \mathbf{\bar{y}} 
+              + 244.3  \,\, \mathbf{\bar{y}}_\mathit{sea} 
+              - 243.3  \,\, \mathbf{\bar{y}}_\mathit{hawks} \\
+          \ 2 \cdot (-0.27) \,\, \mathbf{\bar{y}} 
+              - 243.6  \,\, \mathbf{\bar{y}}_\mathit{sea} 
+              + 244.6  \,\, \mathbf{\bar{y}}_\mathit{hawks}
+\end{array}\right)
+\end{align}
+Now that we have the equation in this form, we can understand it more clearly.
+The bias coefficient is calculated more or less as you'd expect: from the total
+sum over incomes, the seattle-dweller incomes are removed, as are the seahawks
+fans, both in about equal parts.  This is much like we say before in the
+bias/residence computation before we included team information.  This is also
+why the bias is so robust aginst the rare crossover fan problem: if Seattle
+residency and Seahawks fanhood were perfectly correlated, note that this
+expression gives the same value no matter what the coefficients in front of
+$\mathbf{\bar{y}}_\mathit{sea}$ and $\mathbf{\bar{y}}_\mathit{hawks}$ are, as long
+as they sum to 1.  However, the story is different when we look the calculation
+of both the residence effect and the team effect.  In both of these cases, the
+Seattle income average and Seahawk fan income average are blown up (200x) and
+subtracted from one another.  The OLS calculation must magnify whatever
+difference there is on average between these two groups. This is reasonable,
+since if the two groups highly overlap, these averages will be very close.  In
+fact, if 1 out of about 250 Seattlites were not a seahawks fan, you'd expect to
+have to scale up the difference between the two averages by 250 times.
 
 
