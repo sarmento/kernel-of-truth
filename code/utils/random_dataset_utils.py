@@ -22,6 +22,7 @@ def add_gaussian_noise(Y_input, mu, sigma, ratio_of_points_affected):
   for ii in range(Y_input.shape[0]):
     ## should we try to add noise?
     if np.random.uniform(0,1) > ratio_of_points_affected:
+      Y_output[ii] = Y_input[ii]
       continue
     Y_output[ii] = Y_input[ii] + np.random.normal(mu, sigma)
   return Y_output

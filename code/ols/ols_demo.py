@@ -36,7 +36,7 @@ while (runs_so_far < n_runs):
 w_matrix = pu.list_of_vertical_vectors_to_matrix(w_hat_list, w_true.shape[0])
 print "Plotting distribution of w_0..."
 pu.plot_histogram(w_matrix[0,:], \
-                  "Histogram of values of $w_0$ (" + str(n_runs) + " runs). True $w_0$ = 1", \
+                  "Distribution of values of $\hat{w}_0$ (" + str(n_runs) + " runs). True $w_0$ = 1", \
                   'green', \
                   '$w_0$', \
                   'nr. runs', \
@@ -44,7 +44,7 @@ pu.plot_histogram(w_matrix[0,:], \
                    "")
 print "Plotting distribution of w_1..."
 pu.plot_histogram(w_matrix[1,:], \
-                  "Histogram of values of $w_1$ ("  + str(n_runs) + " runs). True $w_1$ = 2", \
+                  "Distribution of values of $\hat{w}_1$ ("  + str(n_runs) + " runs). True $w_1$ = 2", \
                   'red', \
                   '$w_1$', \
                   'nr. runs', \

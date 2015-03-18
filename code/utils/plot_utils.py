@@ -9,12 +9,18 @@ def list_of_vertical_vectors_to_matrix(list_of_vectors, n_dims):
     matrix = np.hstack([matrix, vector])
   return matrix
 
-def plot_histogram(array_of_values, title, color, x_label, y_label, is_to_show, output_file):
-  plt.hist(array_of_values, 100, normed=0, facecolor=color, alpha=0.5)
-  plt.title(title)
-  plt.xlabel(x_label)
-  plt.ylabel(y_label)
-  if is_to_show:
+class HistogramPlot:
+
+  def __init__(self, title, x_label, y_label):
+    self.title   = title
+    self.x_label = x_label
+    self.y_label = y_label
+    plt.title(title)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+
+  def add_data_series(self, array_of_values, color):
+    plt.hist(array_of_values, 100, normed=1, facecolor=color, alpha=0.5)
+
+  def show(self):
     plt.show()
-
-
