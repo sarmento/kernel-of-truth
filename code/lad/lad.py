@@ -1,5 +1,5 @@
 import numpy as np
-from cvxopt.modeling import variable, dot, op, sum, matrix, solvers
+from cvxopt.modeling import variable, op, sum, matrix, solvers
 
 ## We want to minimize
 ##
@@ -39,3 +39,14 @@ def solve_lad(X,Y):
   solvers.options['show_progress'] = False
   op(sum(abs(Y_cvx - X_cvx*w_hat))).solve()
   return w_hat.value
+
+def solve_lad_soft(X,Y, n_iter):
+  w_hat = np.random.rand(X.shape[1],1) - 0.5
+  while n_iter > 0:
+    D = Y - X.dot(w_hat)
+    COSH2 = np.cosh(D) * np.cosh(D)
+    D1 = np.tanh(D) + D / COSH2
+    G = X.transpose().dot(D1)
+    w_hat = w_hat + 0.0001 * G
+    n_iter -= 1
+  return w_hat

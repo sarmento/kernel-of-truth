@@ -5,6 +5,7 @@ sys.path.append('../ols')
 
 ## our own packages
 import ols as ols
+import lad as lad
 import random_dataset_utils as rdu
 import plot_utils as pu
 

@@ -29,9 +29,9 @@ while (runs_so_far < n_runs):
   Y = rdu.add_gaussian_noise(Y_true, 0, 1, 1)
   ## Add 1% of outliers (gaussian noise with much higher variance!)
   Y_outliers = rdu.add_gaussian_noise(Y, 0, 5, p_outliers)
-  w_hat = lad.solve_lad(X,Y)  ## w_hat is a vertical vector
+  w_hat = lad.solve_lad_soft(X,Y, 1000)  ## w_hat is a vertical vector
   w_hat_list.append(w_hat)
-  w_hat_outliers = lad.solve_lad(X,Y_outliers)  ## w_hat is a vertical vector
+  w_hat_outliers = lad.solve_lad_soft(X,Y_outliers, 1000)  ## w_hat is a vertical vector
   w_hat_outliers_list.append(w_hat_outliers)
   runs_so_far += 1
   if runs_so_far % 100 == 0:
